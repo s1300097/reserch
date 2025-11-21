@@ -3,10 +3,11 @@
 make
 
 if [ -x "./client.exe" ]; then
-    ./client.exe &
-    ./client.exe &
-    ./client.exe &
-    ./client.exe &
+    ./client.exe -n rule-base &
+    ./client.exe -n rule-base &
+    ./client.exe -n rule-base &
+    ./client.exe -n rule-base &
+    ./client.exe -n rule-base &
     echo " → client.exe started (PID: $!)"
 else
     echo "ERROR: ./client/client.exe not found or not executable"
