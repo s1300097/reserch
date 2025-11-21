@@ -7,7 +7,7 @@
 #include "daihinmin.h"
 #include "connection.h"
 
-const int g_logging = 1;
+const int g_logging = 0;
 
 #define MAX_MOVES 1024
 
