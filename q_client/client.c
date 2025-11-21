@@ -1,8 +1,9 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#include <errno.h>
 
 #include "daihinmin.h"
 #include "connection.h"
@@ -10,12 +11,17 @@
 const int g_logging = 0;
 
 #define MAX_MOVES 1024
+#define STATE_VEC_LEN 19   // joker_flag, rev_flag, ord, field_tag + flattened hand (15 counts)
+#define ACTION_VEC_LEN 15   // rank counts (indices 0..14; 1..13 populated)
 
 struct move_list
 {
   int moves[MAX_MOVES][8][15];
   int count;
 };
+
+static int g_step_in_episode = 0;
+static int g_episode_id = 0;
 
 static int popcount4(int value)
 {
@@ -49,6 +55,27 @@ static void log_moves(const struct move_list *list)
   }
 }
 
+static const char *get_log_path(void)
+{
+  const char *p = getenv("Q_LOG_PATH");
+  return (p && strlen(p) > 0) ? p : "logs/experience.jsonl";
+}
+
+static FILE *open_log_file(void)
+{
+  static FILE *fp = NULL;
+  if (fp != NULL)
+  {
+    return fp;
+  }
+  fp = fopen(get_log_path(), "a");
+  if (fp == NULL && g_logging == 1)
+  {
+    printf("failed to open log file %s: %s\n", get_log_path(), strerror(errno));
+  }
+  return fp;
+}
+
 static void to_rank_counts(int counts[15], int table[8][15])
 {
   for (int r = 0; r < 15; r++)
@@ -66,6 +93,86 @@ static void to_rank_counts(int counts[15], int table[8][15])
       }
     }
   }
+}
+
+static int build_state_vector(int out[STATE_VEC_LEN], int hand[8][15])
+{
+  int idx = 0;
+  out[idx++] = state.joker;
+  out[idx++] = state.rev;
+  out[idx++] = state.ord;
+  int field_tag = 0;
+  if (state.onset == 1)
+    field_tag = 0;
+  else if (state.qty == 1)
+    field_tag = 1;
+  else if (state.sequence == 0)
+    field_tag = 2;
+  else
+    field_tag = 3;
+  out[idx++] = field_tag;
+
+  int counts[ACTION_VEC_LEN];
+  to_rank_counts(counts, hand);
+  for (int r = 0; r < ACTION_VEC_LEN; r++)
+  {
+    out[idx++] = counts[r];
+  }
+  return idx;
+}
+
+static int estimate_final_reward(int my_playernum)
+{
+  int my_rank = 0;
+  for (int i = 0; i < 5; i++)
+  {
+    if (state.seat[i] == my_playernum)
+    {
+      my_rank = state.player_rank[i];
+      break;
+    }
+  }
+  if (my_rank <= 0)
+    return 0;
+  return 6 - my_rank; // 1位:5, 5位:1 の簡易報酬
+}
+
+static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int actions_count, int actions_flat[][ACTION_VEC_LEN], int reward, int done)
+{
+  FILE *fp = open_log_file();
+  if (fp == NULL)
+    return;
+  fprintf(fp, "{\"ep\":%d,\"t\":%d,\"state\":[", episode, step);
+  for (int i = 0; i < STATE_VEC_LEN; i++)
+  {
+    fprintf(fp, "%d%s", state_vec[i], (i + 1 == STATE_VEC_LEN) ? "" : ",");
+  }
+  fprintf(fp, "],\"action_idx\":%d,\"action_flat\":[", action_idx);
+  for (int i = 0; i < ACTION_VEC_LEN; i++)
+  {
+    fprintf(fp, "%d%s", action_flat[i], (i + 1 == ACTION_VEC_LEN) ? "" : ",");
+  }
+  fprintf(fp, "],\"actions\":[");
+  for (int a = 0; a < actions_count; a++)
+  {
+    fprintf(fp, "[");
+    for (int i = 0; i < ACTION_VEC_LEN; i++)
+    {
+      fprintf(fp, "%d%s", actions_flat[a][i], (i + 1 == ACTION_VEC_LEN) ? "" : ",");
+    }
+    fprintf(fp, "]%s", (a + 1 == actions_count) ? "" : ",");
+  }
+  fprintf(fp, "],\"reward\":%d,\"done\":%d}\n", reward, done);
+  fflush(fp);
+}
+
+static void log_episode_end(int episode, int final_reward)
+{
+  FILE *fp = open_log_file();
+  if (fp == NULL)
+    return;
+  fprintf(fp, "{\"ep\":%d,\"t\":%d,\"final_reward\":%d,\"done\":1}\n", episode, g_step_in_episode, final_reward);
+  fflush(fp);
 }
 
 static int usesAvailableCards(int move[8][15], int hand[8][15], int has_joker)
@@ -374,26 +481,23 @@ static void collect_playable_moves(struct move_list *list, int hand[8][15])
   }
 }
 
-static void choose_random_move(int out_cards[8][15], int hand[8][15])
+static int choose_random_move(struct move_list *list, int out_cards[8][15])
 {
-  struct move_list list;
-  init_move_list(&list);
-  collect_playable_moves(&list, hand);
-
-  if (list.count == 0)
+  if (list->count == 0)
   {
     clearTable(out_cards); // pass
-    return;
+    return -1;
   }
   else if(g_logging == 1)
   {
     showState(&state);
-    printf("found %d possible moves\n", list.count);
-    log_moves(&list);
+    printf("found %d possible moves\n", list->count);
+    log_moves(list);
   }
 
-  int idx = rand() % list.count;
-  copyTable(out_cards, list.moves[idx]);
+  int idx = rand() % list->count;
+  copyTable(out_cards, list->moves[idx]);
+  return idx;
 }
 
 int main(int argc, char *argv[])
@@ -421,6 +525,8 @@ int main(int argc, char *argv[])
   while (whole_gameend_flag == 0)
   {
     one_gameend_flag = 0;
+    g_step_in_episode = 0;
+    g_episode_id++;
 
     game_count = startGame(own_cards_buf);
     copyTable(own_cards, own_cards_buf);
@@ -456,7 +562,24 @@ int main(int argc, char *argv[])
         clearCards(select_cards);
         copyTable(own_cards, own_cards_buf);
 
-        choose_random_move(select_cards, own_cards);
+        int state_vec[STATE_VEC_LEN];
+        int actions_flat[MAX_MOVES][ACTION_VEC_LEN];
+        struct move_list candidate_list;
+        init_move_list(&candidate_list);
+        collect_playable_moves(&candidate_list, own_cards);
+        for (int i = 0; i < candidate_list.count; i++)
+        {
+          to_rank_counts(actions_flat[i], candidate_list.moves[i]);
+        }
+        int choice_idx = choose_random_move(&candidate_list, select_cards);
+        if (choice_idx >= 0 && choice_idx < candidate_list.count)
+        {
+          memcpy(action_vec, actions_flat[choice_idx], sizeof(action_vec));
+        }
+
+        build_state_vector(state_vec, own_cards);
+        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, candidate_list.count, actions_flat, 0, 0);
+        g_step_in_episode++;
 
         accept_flag = sendCards(select_cards);
         (void)accept_flag;
@@ -492,6 +615,12 @@ int main(int argc, char *argv[])
         }
         break;
       }
+
+      if (one_gameend_flag == 1)
+      {
+        int final_reward = estimate_final_reward(my_playernum);
+        log_episode_end(g_episode_id, final_reward);
+      }
     }
   }
   if (closeSocket() != 0)
@@ -501,3 +630,4 @@ int main(int argc, char *argv[])
   }
   exit(0);
 }
+
