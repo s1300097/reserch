@@ -1,5 +1,4 @@
 another_client/
-random_client/
 server/src/logs/
 # Build artifacts
 *.o
