@@ -7,7 +7,7 @@
 #include "daihinmin.h"
 #include "connection.h"
 
-const int g_logging = 0;
+const int g_logging = 1;
 
 #define MAX_MOVES 1024
 
@@ -34,6 +34,18 @@ static void init_move_list(struct move_list *list)
   for (int i = 0; i < MAX_MOVES; i++)
   {
     clearTable(list->moves[i]);
+  }
+}
+
+static void log_moves(const struct move_list *list)
+{
+  if (g_logging == 0)
+    return;
+
+  for (int i = 0; i < list->count; i++)
+  {
+    printf("move #%d\n", i);
+    outputTable((int (*)[15])list->moves[i]);
   }
 }
 
@@ -76,6 +88,35 @@ static void analyzeMoveState(int move[8][15], struct state_type *out_state)
   state = backup;
 }
 
+static int beats_current_field(const struct state_type *candidate, const struct state_type *current)
+{
+  if (current->onset == 1)
+    return 1; // new field, anything goes
+
+  if (candidate->qty != current->qty)
+    return 0;
+  if (candidate->sequence != current->sequence)
+    return 0;
+
+  if (current->lock == 1)
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      if (candidate->suit[i] == 1 && current->suit[i] == 0)
+        return 0;
+    }
+  }
+
+  if (current->rev == 0)
+  {
+    return candidate->ord > current->ord;
+  }
+  else
+  {
+    return candidate->ord < current->ord;
+  }
+}
+
 static int is_move_valid(int move[8][15], int hand[8][15])
 {
   struct state_type move_state;
@@ -91,37 +132,7 @@ static int is_move_valid(int move[8][15], int hand[8][15])
   if (move_state.qty == 0)
     return 0;
 
-  if (current.onset == 1)
-  {
-    return 1;
-  }
-
-  if (move_state.qty != current.qty)
-    return 0;
-  if (move_state.sequence != current.sequence)
-    return 0;
-
-  if (current.lock == 1)
-  {
-    for (int i = 0; i < 4; i++)
-    {
-      if (move_state.suit[i] == 1 && current.suit[i] == 0)
-        return 0;
-    }
-  }
-
-  if (current.rev == 0)
-  {
-    if (move_state.ord <= current.ord)
-      return 0;
-  }
-  else
-  {
-    if (move_state.ord >= current.ord)
-      return 0;
-  }
-
-  return 1;
+  return beats_current_field(&move_state, &current);
 }
 
 static void add_move(struct move_list *list, int move[8][15])
@@ -355,6 +366,12 @@ static void choose_random_move(int out_cards[8][15], int hand[8][15])
     clearTable(out_cards); // pass
     return;
   }
+  else if(g_logging == 1)
+  {
+    showState(&state);
+    printf("found %d possible moves\n", list.count);
+    log_moves(&list);
+  }
 
   int idx = rand() % list.count;
   copyTable(out_cards, list.moves[idx]);
@@ -419,7 +436,6 @@ int main(int argc, char *argv[])
       {
         clearCards(select_cards);
         copyTable(own_cards, own_cards_buf);
-        showState(&state);
 
         choose_random_move(select_cards, own_cards);
 
