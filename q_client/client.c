@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "daihinmin.h"
 #include "connection.h"
@@ -13,6 +14,8 @@ const int g_logging = 0;
 #define MAX_MOVES 1024
 #define STATE_VEC_LEN 19   // joker_flag, rev_flag, ord, field_tag + flattened hand (15 counts)
 #define ACTION_VEC_LEN 15   // rank counts (indices 0..14; 1..13 populated)
+#define MODEL_MAX_STATES 2000
+#define MODEL_MAX_ACTIONS 128
 
 struct move_list
 {
@@ -22,6 +25,27 @@ struct move_list
 
 static int g_step_in_episode = 0;
 static int g_episode_id = 0;
+
+struct action_value
+{
+  char key[128];
+  float value;
+};
+
+struct state_entry
+{
+  char key[128];
+  int action_count;
+  struct action_value actions[MODEL_MAX_ACTIONS];
+};
+
+struct q_model
+{
+  int count;
+  struct state_entry states[MODEL_MAX_STATES];
+};
+
+static struct q_model g_model; // keep on static storage to avoid large stack usage
 
 static int popcount4(int value)
 {
@@ -137,7 +161,7 @@ static int estimate_final_reward(int my_playernum)
   return 6 - my_rank; // 1位:5, 5位:1 の簡易報酬
 }
 
-static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int actions_count, int actions_flat[][ACTION_VEC_LEN], int reward, int done)
+static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int selected_action[ACTION_VEC_LEN], int actions_count, int actions_flat[][ACTION_VEC_LEN], int reward, int done)
 {
   FILE *fp = open_log_file();
   if (fp == NULL)
@@ -150,7 +174,7 @@ static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], 
   fprintf(fp, "],\"action_idx\":%d,\"action_flat\":[", action_idx);
   for (int i = 0; i < ACTION_VEC_LEN; i++)
   {
-    fprintf(fp, "%d%s", action_flat[i], (i + 1 == ACTION_VEC_LEN) ? "" : ",");
+    fprintf(fp, "%d%s", selected_action[i], (i + 1 == ACTION_VEC_LEN) ? "" : ",");
   }
   fprintf(fp, "],\"actions\":[");
   for (int a = 0; a < actions_count; a++)
@@ -173,6 +197,203 @@ static void log_episode_end(int episode, int final_reward)
     return;
   fprintf(fp, "{\"ep\":%d,\"t\":%d,\"final_reward\":%d,\"done\":1}\n", episode, g_step_in_episode, final_reward);
   fflush(fp);
+}
+
+static char *skip_ws(char *p)
+{
+  while (*p && isspace((unsigned char)*p))
+    p++;
+  return p;
+}
+
+static char *parse_string(char *p, char *out, size_t outsz)
+{
+  p = skip_ws(p);
+  if (*p != '"')
+    return NULL;
+  p++;
+  size_t idx = 0;
+  while (*p && *p != '"' && idx + 1 < outsz)
+  {
+    if (*p == '\\' && p[1])
+      p++;
+    out[idx++] = *p++;
+  }
+  if (*p != '"')
+    return NULL;
+  out[idx] = '\0';
+  return p + 1;
+}
+
+static char *parse_number(char *p, float *out)
+{
+  p = skip_ws(p);
+  char *endp = NULL;
+  *out = strtof(p, &endp);
+  if (endp == p)
+    return NULL;
+  return endp;
+}
+
+static int load_q_model(const char *path, struct q_model *model)
+{
+  FILE *fp = fopen(path, "rb");
+  if (!fp)
+    return -1;
+  fseek(fp, 0, SEEK_END);
+  long len = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  if (len <= 0 || len > 20 * 1024 * 1024)
+  {
+    fclose(fp);
+    return -1;
+  }
+  char *buf = (char *)malloc(len + 1);
+  if (!buf)
+  {
+    fclose(fp);
+    return -1;
+  }
+  if (fread(buf, 1, len, fp) != (size_t)len)
+  {
+    free(buf);
+    fclose(fp);
+    return -1;
+  }
+  buf[len] = '\0';
+  fclose(fp);
+
+  model->count = 0;
+  char *p = skip_ws(buf);
+  if (*p != '{')
+  {
+    free(buf);
+    return -1;
+  }
+  p++;
+  while (1)
+  {
+    p = skip_ws(p);
+    if (*p == '}')
+      break;
+    if (model->count >= MODEL_MAX_STATES)
+      break;
+    struct state_entry *st = &model->states[model->count];
+    p = parse_string(p, st->key, sizeof(st->key));
+    if (!p)
+      break;
+    p = skip_ws(p);
+    if (*p != ':')
+      break;
+    p++;
+    p = skip_ws(p);
+    if (*p != '{')
+      break;
+    p++;
+    st->action_count = 0;
+    while (1)
+    {
+      p = skip_ws(p);
+      if (*p == '}')
+      {
+        p++;
+        break;
+      }
+      if (st->action_count >= MODEL_MAX_ACTIONS)
+        break;
+      struct action_value *av = &st->actions[st->action_count];
+      p = parse_string(p, av->key, sizeof(av->key));
+      if (!p)
+        goto end_parse;
+      p = skip_ws(p);
+      if (*p != ':')
+        goto end_parse;
+      p++;
+      if (!(p = parse_number(p, &av->value)))
+        goto end_parse;
+      st->action_count++;
+      p = skip_ws(p);
+      if (*p == ',')
+      {
+        p++;
+        continue;
+      }
+      else if (*p == '}')
+      {
+        p++;
+        break;
+      }
+    }
+    model->count++;
+    p = skip_ws(p);
+    if (*p == ',')
+    {
+      p++;
+      continue;
+    }
+    else if (*p == '}')
+    {
+      break;
+    }
+  }
+
+end_parse:
+  free(buf);
+  return model->count > 0 ? 0 : -1;
+}
+
+static int find_state(const struct q_model *model, const char *state_key)
+{
+  for (int i = 0; i < model->count; i++)
+  {
+    if (strcmp(model->states[i].key, state_key) == 0)
+      return i;
+  }
+  return -1;
+}
+
+static float find_action_value(const struct state_entry *st, const char *action_key, int *found)
+{
+  for (int i = 0; i < st->action_count; i++)
+  {
+    if (strcmp(st->actions[i].key, action_key) == 0)
+    {
+      *found = 1;
+      return st->actions[i].value;
+    }
+  }
+  *found = 0;
+  return 0.0f;
+}
+
+static void build_state_key(char *out, size_t outsz, int state_vec[STATE_VEC_LEN])
+{
+  out[0] = '\0';
+  for (int i = 0; i < STATE_VEC_LEN; i++)
+  {
+    char tmp[16];
+    snprintf(tmp, sizeof(tmp), "%d", state_vec[i]);
+    strncat(out, tmp, outsz - strlen(out) - 1);
+    if (i + 1 != STATE_VEC_LEN)
+    {
+      strncat(out, ",", outsz - strlen(out) - 1);
+    }
+  }
+}
+
+static void build_action_key(char *out, size_t outsz, int action_vec[ACTION_VEC_LEN])
+{
+  out[0] = '\0';
+  for (int i = 0; i < ACTION_VEC_LEN; i++)
+  {
+    if (action_vec[i] == 0)
+      continue;
+    char tmp[24];
+    snprintf(tmp, sizeof(tmp), "%d:%d", i, action_vec[i]);
+    if (strlen(out) > 0)
+      strncat(out, ";", outsz - strlen(out) - 1);
+    strncat(out, tmp, outsz - strlen(out) - 1);
+  }
 }
 
 static int usesAvailableCards(int move[8][15], int hand[8][15], int has_joker)
@@ -500,10 +721,45 @@ static int choose_random_move(struct move_list *list, int out_cards[8][15])
   return idx;
 }
 
+static int choose_model_move(struct q_model *model, const char *state_key, struct move_list *list, int out_cards[8][15], int actions_flat[][ACTION_VEC_LEN])
+{
+  if (!model || model->count == 0)
+    return -1;
+  int st_idx = find_state(model, state_key);
+  if (st_idx < 0)
+    return -1;
+  struct state_entry *st = &model->states[st_idx];
+  float best_val = 0.0f;
+  int best_idx = -1;
+  int any = 0;
+  for (int i = 0; i < list->count; i++)
+  {
+    char action_key[128];
+    build_action_key(action_key, sizeof(action_key), actions_flat[i]);
+    int found = 0;
+    float val = find_action_value(st, action_key, &found);
+    if (!found)
+      continue;
+    if (best_idx == -1 || val > best_val)
+    {
+      best_idx = i;
+      best_val = val;
+    }
+    any = 1;
+  }
+  if (best_idx >= 0 && best_idx < list->count)
+  {
+    copyTable(out_cards, list->moves[best_idx]);
+    return best_idx;
+  }
+  return any ? -1 : -1;
+}
+
 int main(int argc, char *argv[])
 {
 
   int my_playernum;
+  g_model.count = 0;
   int whole_gameend_flag = 0;
   int one_gameend_flag = 0;
   int accept_flag = 0;
@@ -518,6 +774,14 @@ int main(int argc, char *argv[])
 
   // parse command line and connect settings
   checkArg(argc, argv);
+
+  const char *model_path = getenv("Q_MODEL_PATH");
+  if (model_path == NULL || strlen(model_path) == 0)
+    model_path = "models/q_table.json";
+  if (load_q_model(model_path, &g_model) == 0 && g_logging == 1)
+  {
+    printf("loaded q model: %s (states=%d)\n", model_path, g_model.count);
+  }
 
   // join game
   my_playernum = entryToGame();
@@ -563,6 +827,7 @@ int main(int argc, char *argv[])
         copyTable(own_cards, own_cards_buf);
 
         int state_vec[STATE_VEC_LEN];
+        int action_vec[ACTION_VEC_LEN] = {0};
         int actions_flat[MAX_MOVES][ACTION_VEC_LEN];
         struct move_list candidate_list;
         init_move_list(&candidate_list);
@@ -571,14 +836,22 @@ int main(int argc, char *argv[])
         {
           to_rank_counts(actions_flat[i], candidate_list.moves[i]);
         }
-        int choice_idx = choose_random_move(&candidate_list, select_cards);
+
+        build_state_vector(state_vec, own_cards);
+        char state_key[256];
+        build_state_key(state_key, sizeof(state_key), state_vec);
+
+        int choice_idx = choose_model_move(&g_model, state_key, &candidate_list, select_cards, actions_flat);
+        if (choice_idx < 0)
+        {
+          choice_idx = choose_random_move(&candidate_list, select_cards);
+        }
         if (choice_idx >= 0 && choice_idx < candidate_list.count)
         {
           memcpy(action_vec, actions_flat[choice_idx], sizeof(action_vec));
         }
 
-        build_state_vector(state_vec, own_cards);
-        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, candidate_list.count, actions_flat, 0, 0);
+        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, action_vec, candidate_list.count, actions_flat, 0, 0);
         g_step_in_episode++;
 
         accept_flag = sendCards(select_cards);
