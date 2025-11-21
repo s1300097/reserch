@@ -1,0 +1,599 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+<META http-equiv="Content-Style-Type" content="text/css">
+<LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp">
+<LINK rel="INDEX" href="./index.html">
+<link href="ver01.css" rel="stylesheet" type="text/css">
+<TITLE>標準クライアント（JAVA版）</TITLE>
+</HEAD>
+<BODY>
+<p>
+<a href="j-comp.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="j-server.html">[次のページ]</a>
+</p>
+<hr>
+
+<h1>11. JAVA版標準クライアント</h1>
+
+<hr class="middle">
+<h2><a name="11.1jclient">11.1 クライアントプログラムの構造</a></h2>
+<div class="text">
+<p>
+クライアントプログラムに関連するのは主に以下のクラスです。
+</p>
+
+<ul>
+<li><span class="midasi">/jp/ac/uec/daihinmin/net/TableClient.class</span><br>
+サーバーと通信し、クライアントプログラムとの仲介をするクラス。
+実際にクライアントとして動作させる際、実行するのはこのクラスとなります。
+
+<li><span class="midasi"> /jp/ac/uec/daihinmin/player/Player.class</span><br>
+クライアントプログラムが実装すべきメソッドが定義されているインターフェースクラス。
+
+<li><span class="midasi"> /jp/ac/uec/daihinmin/player/BotSkeleton.class</span><br>
+戦略以外のクライアントプログラムとしての最小限の動作を記述したクラス。
+
+</ul>
+
+<p>
+クライアントを作成する場合、BotSkeletonクラスをextendsしたクラスを作成することになります。
+<span class="important">なお、BotSkeletonをextendsしてつくったクラスのクラス名が、
+クライアント名となります。</span>
+BotSkeletonクラスをextendsすることで通信やゲーム制御を意識せず、戦略の実装のみに取り組むことができます。
+戦略の実装の具体的なノウハウについては後述しますが、標準クライアントとして提供されている
+/jp/ac/uec/daihinmin/player/BotPlain.java
+が実装の手本となるでしょう。
+</p>
+<p>
+ここで、「packageは指定しない」という点に気をつけて下さい。
+またjp.ac.uec.daihinmin.player.*、
+jp.ac.uec.daihinmin.card.*をインポートする必要があります。
+これらのパッケージをインポートするためにはファイルの先頭に以下の様に書きます。
+</p>
+<div class="indent">
+<div class="prog">
+<pre>
+import jp.ac.uec.daihinmin.player.*;
+
+import jp.ac.uec.daihinmin.card.*;
+</pre>
+</div>
+</div>
+
+</div>
+
+<hr class="middle">
+<h2>11.2 クライアントの改良について</h2>
+<div class="text">
+<p>
+UECdaのサーバ・クライアントプログラムは整数型のテーブルの通信により行われますが、
+Java版のクライアントプログラムを開発する場合、それを意識する必要はありません。
+</p>
+
+<p>
+Java版ではカードや役を扱うクラスや場の情報を持つクラスが提供されており、
+クライアントプログラムを開発する際にはそれらを使って戦略を組み立てることができます。
+関連するクラスは以下の通りです。
+</p>
+
+<ul>
+<li><span class="midasi"> jp/ac/uec/daihinmin/card/Card.class</span><br>
+カードを表現するクラス
+
+<li><span class="midasi"> jp/ac/uec/daihinmin/card/Cards.class</span><br>
+カードの集合を表現するクラス
+
+<li><span class="midasi"> jp/ac/uec/daihinmin/card/Meld.class</span><br>
+役を表現するクラス
+
+<li><span class="midasi"> jp/ac/uec/daihinmin/card/Melds.class</span><br>
+役の集合を表現するクラス
+
+<li><span class="midasi"> jp/ac/uec/daihinmin/Place.class</span><br>
+場の情報を持つクラス
+
+<li><span class="midasi"> jp/ac/uec/daihinmin/PlayersInformation.class</span><br>
+各プレイヤーの情報(カードの枚数等)を持つクラス
+
+</ul>
+<p>
+それぞれのクラスの詳細はjavadocを参照ください。
+</p>
+</div>
+
+<hr class="middle">
+<h2>11.3 戦略の実装</h2>
+<div class="text">
+<p>
+新たなクライアントプログラムを開発する際、BotSkeletonクラスをextendsして作成することは先にも述べましたが、
+BotSkeletonクラスをextendsしたクラスは少なくとも以下の2つのメソッドを実装する必要があります。
+</p>
+
+<ul>
+<li><span class="midasi"> requestingGivingCards()メソッド</span><br>
+階級が富豪(大富豪)のとき、カード交換フェーズで貧民(大貧民)に与えるカードを選択するメソッド
+<li><span class="midasi"> requestingPlay()メソッド</span><br>
+自分のターンが回ってきたときにどの役を場に出すかを選択するメソッド
+</ul>
+</div>
+
+<hr class="middle">
+<h3>11.3.1 requestingGivingCards()メソッドの実装</h3>
+<div class="text">
+<p>
+富豪(大富豪)のとき、カード交換フェーズで貧民(大貧民)に与えるカードを選択します。
+</p>
+<p>
+まずは自分の手札を知る必要があるでしょう。
+</p>
+
+<div class="indnet">
+<div class="prog">
+<pre>
+Cards hand = this.hand();
+</pre>
+</div>
+</div>
+<p>
+this.hand()メソッドはBotSkeletonクラスから自分の手札を受けとるメソッドです。
+これでhand変数に自分の手札がコピーされました。
+またCardsクラスやMeldクラスは以下の様に記述することで内容を表示することができます。
+</p>
+
+<div class="indnet">
+<div class="prog">
+<pre>
+System.out.println(hand);
+</pre>
+</div>
+</div>
+<p>
+今度はhand変数から渡したいカードを選ばなくてはなりません。
+たとえばhandの中にある最も弱いカードを抽出したい場合、以下のように記述します。
+</p>
+<div class="indnet">
+<div class="prog">
+<pre>
+Cards hand2 = hand.extract(Cards.MIN_RANK);
+</pre>
+</div>
+</div>
+<p>
+これでhand2にはhandの中で最も弱いカードが代入されました。
+</p>
+<p>
+このように、Cardsクラスを使用したカードの選択はextractメソッドにより、
+カードを絞り込むことで行います。
+</p>
+<p>
+もちろん、実際には最弱のカードを選んだだけでは不十分です。
+最弱のカードは複数枚ある場合もありますし、2枚選ばなくてはならないのに、
+最弱のカードは1枚しかない場合もあります。
+</p>
+<p>
+色々なケースを想定して実装してみてください。
+</p>
+</div>
+
+<hr class="middle">
+
+<h3>11.3.2 requestingPlay()メソッドの実装</h3>
+<div class="text">
+<p>
+どの役を場に出すかを選択します。
+クライアントの強弱を担う、最も重要なメソッドです。
+</p>
+<p>
+まず、requestingGivingCards()の時と同じように自分の手札を知る必要があります。
+そして自分の手札から役を抽出します。
+</p>
+
+<div class="indnet">
+<div class="prog">
+<pre>
+Cards hand = this.hand();
+Melds melds = Melds.parseMelds(hand);
+</pre>
+</div>
+</div>
+<p>
+役(Meld)はCardsに近い概念ですが、2枚組や階段などの役の情報が付随しています。
+Melds.parseMelds(hand)はhandから作ることができる役を全て生成するメソッドです。
+そのため役の集合(Melds)クラスとして受け取ります。
+たとえばhandの中身がH3, H4, C4, H5であれば、
+Melds.parseMelds(hand)で得られる役は次のようになります。
+</p>
+<div class="indent">
+<pre>
+[SINGLE]H3, [SINGLE]H4, [SINGLE]C4, [SINGLE]H5, [GROUP]H4 C4, [SEQUENCE]H3 H4 H5</pre>
+</div>
+<p>
+また場の状況を知る必要があります。場の状況はPlaceクラスが保持しています。
+</p>
+<div class="indnet">
+<div class="prog">
+<pre>
+Place place = this.place();
+</pre>
+</div>
+</div>
+<p>
+例えば、現在場に出ているカードの役の型(SINGLEやSEQUENCEなど)がGROUPであるとき、
+meldsからGROUPの役のみを抽出したい場合には以下のようになります。
+</p>
+
+<div class="indnet">
+<div class="prog">
+<pre>
+if(place.type()==Meld.Type.GROUP){
+    melds = melds.extract(Melds.GROUPS);
+}
+</pre>
+</div>
+</div>
+<p>
+上の例でも分かる通り、Melds型の変数にもextractメソッドがあります。
+どのようなextractorが利用できるかはjavadocを参照してください。
+また\ref{subsection:example}節の具体例や、標準クライアントであるBotPlain.javaが参考になるかもしれません。
+</p>
+</div>
+
+<hr class="middle">
+
+<h3>11.3.3 その他のメソッドのオーバーライド</h3>
+<div class="text">
+<p>
+上記の2つのメソッドを実装することで、クライアントは試合を行うことができます。
+しかし、それ以外にも動作を記述したい場合があるかもしれません。
+</p>
+<p>
+例えば「毎試合の最初に変数hogeをリセットしたい」等です。
+その場合はBotSkeletonクラスのメソッドをオーバーライドします。
+上の例であれば、試合の開始時に実行されるメソッド、gameStarted()をオーバーライドします。
+ただし、その場合は必ずsuperクラスのメソッドを実行するようにしてください。
+なぜならそれらのメソッドはゲームの進行や通信の実行などに関連する可能性があるからです。
+</p>
+<div class="indent">
+<div class="prog">
+<pre>
+public void gameStarted(){
+    super.gameStarted();
+    hoge = 0;
+}
+</pre>
+</div>
+</div>
+<p>
+別の例として他のプレイヤーが出した手を逐一表示したいときには、
+played(Integer number, Meld playedMeld)をオーバーライドします。
+このメソッドは誰かが役を場に出したときに呼び出されるメソッドです。
+</p>
+<div class="indent">
+<div class="prog">
+<pre>
+public void played(Integer number, Meld playedMeld){
+    super.played(number, playedMeld);
+    System.out.println(playedMeld);
+}
+</pre>
+</div>
+</div>
+<p>
+どのようなメソッドがどのようなタイミングで実行されるかは<a href="j-client.html">"第11章『標準クライアント』</a>を参照してください。
+</p>
+</div>
+<hr class="middle">
+
+<h2>11.4 カードパッケージの使用例</h2>
+<div class="text">
+<p>
+この節ではカードパッケージを使用したカードや役の扱い方の例を紹介します。
+</p>
+<ul>
+<li><span class="midasi">Q1.カード集合cardsからJokerを除く</span><br>
+      cards = cards.extract(Cards.JOKERS.not());
+<li><span class="midasi">Q2.カード集合cardsからスートsuitのカードだけを抽出</span><br>
+      cards = cards.extract(Cards.suitOf(suit));
+<li><span class="midasi">Q3.カード集合cardsからランクrankより強いランクのカードだけを抽出</span><br>
+      cards = cards.extract(Cards.rankUnder(rank));
+<li><span class="midasi">Q4.カード集合cardsから役集合meldsを得る</span><br>
+      melds = Melds.parseMelds(cards);
+<li><span class="midasi">Q5.カード集合cardsから階段の役として使えるカードを除く</span><br>
+      cards = cards.remove(Melds.project(Melds.parseSequenceMelds(cards)));
+<li><span class="midasi">Q6.カード集合cardsから2枚以上の役として成立するカードだけを抽出</span><br>
+      cards = Melds.project(Melds.parseMelds(cards).extract(Melds.sizeOf(2).
+       or(Melds.sizeOver(2))));
+<li><span class="midasi">Q7.カード集合cardsから2枚未満の役として成立するカードだけを抽出</span><br>
+      cards = Melds.project(Melds.parseMelds(cards).extract(Melds.sizeUnder(2)));
+<li><span class="midasi">Q8.役集合meldsから階段の役だけを抽出</span><br>
+      melds = melds.extract(Melds.SEQUENCES);
+<li><span class="midasi">Q9.役集合meldsから2枚組の役だけを抽出</span><br>
+      melds = melds.extract(Melds.sizeOf(2));
+<li><span class="midasi">Q10.役集合meldsから最もランクの弱い役だけを抽出</span><br>
+      melds = melds.extract(Melds.MIN_RANK);
+<li><span class="midasi">Q11.役集合meldsからスート集合suitsと等しいスート集合を持つ役のみを抽出</span><br>
+      melds = melds.extract(Melds.suitsOf(suits));
+      </ul>
+</div>
+
+<hr class="middle">
+
+<h2>11.5 BotSkeletonクラスのメソッド一覧</h2>
+<div class="text">
+BotSkeletonクラスはクライアントプログラムの基礎となる動作をするクラスです。
+クライアントを作成する場合にはこのクラスをextendsして作成します。
+
+ここではBotSkeletonクラスで実装されているメソッドについて説明します。
+
+<ul>
+<li><span class="midasi"> public void daihinminStarted(Rules rules)</span><br>
+大貧民開始時に実行されるメソッド
+
+<li><span class="midasi"> public void daihinminEnded()</span><br>
+大貧民終了時に実行されるメソッド
+
+<li><span class="midasi"> public void gameStarted()</span><br>
+ゲーム開始時に実行されるメソッド
+
+<li><span class="midasi"> public void gameEnded()</span><br>
+ゲーム終了時に実行されるメソッド
+
+<li><span class="midasi"> public void gameContinue()</span><br>
+ゲームが継続することを通知されたときに実行されるメソッド
+
+</ul>
+
+<ul>
+<li><span class="midasi"> public String requestingName()</span><br>
+サーバーに名前を要求されたときに実行されるメソッド。
+クラス名を名前として送信する
+
+<li><span class="midasi"> public abstract Cards requestingGivingCards()</span><br>
+大富豪(富豪)時に大貧民(貧民)に渡すカードを要求されたとき実行される抽象メソッド。
+extendsしたクラスで実装する必要がある
+
+<li><span class="midasi"> public abstract Meld requestingPlay()</span><br>
+場に出すカードを要求されたとき実行される抽象メソッド。
+extendsしたクラスで実装する必要がある
+
+</ul>
+
+<ul>
+<li><span class="midasi"> public void youJoined(Integer num)</span><br>
+参加受理されたとき実行されるメソッド。
+numはサーバーから通知された自分のプレイヤー番号
+
+<li><span class="midasi"> public void dealed(Cards hand)</span><br>
+ゲーム開始直後、自分の手札が配られたときに実行されるメソッド。
+handは自分の手札。
+
+<li><span class="midasi"> public void dealed(Integer player,Integer handSize)</span><br>
+ゲーム開始直後、他プレイヤーに手札が配られたときに実行されるメソッド(枚数のみの通知)。
+playerはプレイヤー番号、handSizeは配られた枚数
+
+<li><span class="midasi"> public void gaveCards(Integer playerFrom,Integer playerTo,Cards cards)</span><br>
+(自分が交換に関わる)カード交換時に実行されるメソッド。
+交換相手が誰かは非通知(NULL)。
+
+<li><span class="midasi"> public void played(Integer number,Meld playedMeld)</span><br>
+誰かが場に役を提出したときに実行されるメソッド。
+numberは提出したプレイヤー、playedMeldが提出された役
+
+
+<li><span class="midasi"> public void playRejected(Integer number,Meld playedMeld)</span><br>
+自分の提出した役がリジェクトされたときに実行されるメソッド。
+numberは自分のプレイヤー番号、playedMeldはリジェクトされた役
+
+<li><span class="midasi"> public void playAccepted(Integer number,Meld playedMeld)</span><br>
+自分の提出した役が受理されたときに実行されるメソッド。
+numberは自分のプレイヤー番号、playedMeldは受理された役
+
+<li><span class="midasi"> public void playerWon(Integer number)</span><br>
+プレイヤーが勝ち抜けたときに実行されるメソッド。
+numberは勝ち抜けたプレイヤー番号
+
+<li><span class="midasi"> public void placeRenewed()</span><br>
+場が流れたときに実行されるメソッド。
+
+</ul>
+
+<ul>
+<li><span class="midasi"> public Cards hand()</span><br>
+自分の手札を返すメソッド
+
+<li><span class="midasi"> public Integer handSize()</span><br>
+自分の手札の枚数を返すメソッド
+
+<li><span class="midasi"> public Place place()</span><br>
+場の情報を持つplaceクラスを返すメソッド
+
+<li><span class="midasi"> public PlayersInformation playersInformation()</span><br>
+他プレイヤーの情報を持つplayersInformationを返すメソッド
+
+<li><span class="midasi"> public String name()</span><br>
+クラスの名前を返すメソッド
+
+<li><span class="midasi"> public Integer number()</span><br>
+自分のプレイヤー番号を返すメソッド
+
+<li><span class="midasi"> public Integer rank()</span><br>
+自分の階級を返すメソッド
+
+<li><span class="midasi"> public Integer score()</span><br>
+自分の累計得点を返すメソッド
+
+<li><span class="midasi"> public Rules rules()</span><br>
+rulesを返すメソッド
+
+<li><span class="midasi"> public Boolean isPassed()</span><br>
+自分が既にパスをしたかを返すメソッド
+</ul>
+</div>
+<hr class="middle">
+
+<h2><a name="11.6BotPlain">11.6 BotPlain</a></h2>
+<div class="text">
+<p>
+標準クライアントとして公開されているBotPlain.javaのソースコードを以下に示します。
+</p>
+<div class="indent">
+<div class="prog">
+<pre>
+package jp.ac.uec.daihinmin.player;
+
+import static jp.ac.uec.daihinmin.card.MeldFactory.PASS;
+import static jp.ac.uec.daihinmin.card.MeldFactory.createSingleMeldJoker;
+import jp.ac.uec.daihinmin.Order;
+import jp.ac.uec.daihinmin.Rules;
+import jp.ac.uec.daihinmin.card.Card;
+import jp.ac.uec.daihinmin.card.Cards;
+import jp.ac.uec.daihinmin.card.Meld;
+import jp.ac.uec.daihinmin.card.Melds;
+import jp.ac.uec.daihinmin.card.Rank;
+import jp.ac.uec.daihinmin.card.Suit;
+import jp.ac.uec.daihinmin.card.Suits;
+
+public final class BotPlain extends BotSkeleton {
+ 
+    <span class="comment">/*
+     * カード交換の時に用いられるメソッド．
+     * ただし，07年度のルールでは自分の順位が平民以上の時のみ選ぶことができる．
+     * 貧民以下の時は,このメソッドは呼ばれず,自動的に徴収されます．
+     *   このメソッド内で用いられる主なメソッドおよびフィールド
+     *       自分の手札       this.hand()    
+     *       渡すカードの枚数  Rules.sizeGivenCards(this.rules(),this.rank());
+     *       自分の順位       this.rank()
+     *       平民の順位       Rules.heiminRank(this.rules())
+     *
+     * @return 交換相手に渡すカード集合
+     */</span>
+    public Cards requestingGivingCards() {
+	Cards result = Cards.EMPTY_CARDS;
+	<span class="comment">//手札を昇順にソート．たとえば，JOKER S2 HA ... D4 D3</span>
+	Cards sortedHand = Cards.sort(this.hand());
+	<span class="comment">//渡すカードの枚数だけ，resultにカードを追加</span>
+	for(int i=0;i &lt; Rules.sizeGivenCards(this.rules(),this.rank()); i++){
+	    result = result.add(sortedHand.get(<span class="comment">/*平民より上か？ 注:07年度のルールでは平民以上の時のみ選ぶことができる */</span>
+					       Rules.heiminRank(this.rules()) &lt; this.rank()?
+					       sortedHand.size()-1-i   <span class="comment">/*平民より下*/</span>
+					       :i                      <span class="comment">/*平民より上*/</span>));
+	}
+	<span class="comment">//たとえば，大貧民なら D3 D4</span>
+	<span class="comment">//たとえば，大富豪なら JOKER S2</span>
+	return result;
+    }
+    <span class="comment">/**
+     * カードを出す時に用いられるメソッド．
+     *   このメソッド内で用いられる主なメソッドおよびフィールド
+     *       自分の手札              this.hand()    
+     *       自分のプレイヤー番号      this.number()
+     *       場                    this.place()
+     *       場が新しいか            this.place().isRenew() ただし,場にカードがなければtrue
+     *       場に出されている役の枚数   this.place().size()
+     *       場に出されている役のタイプ this.place().type()    ただし，型はMeld.Type
+     *       革命中か否か            this.place().order()   ただし，型はOrder
+     *       パスの役                PassMeld.PASS()
+     *
+     *   よく使われうるイディオム
+     *       場に出されている役のランクの,直ぐ上のランク
+     *       Rank next_rank = this.place().type() == Meld.Type.SEQUENCE?
+     *                           this.rules().nextRankSequence(this.place().rank(),this.place().size(),this.place().order())
+     *                           :this.place().order() == Order.NORMAL?this.place().rank().higher():this.place().rank().lower();
+     *              ただし，this.rules().nextRankSequence は次のランクがないとき,IllegalArgumentException をスローします．
+     *
+     *	     場に出されている役の,タイプ,枚数,ランク,革命中か否か,に合わせて,「出すことができる」候補に絞る．
+     *       melds = melds.extract(Melds.typeOf(this.place().type()).and(
+     *                      Melds.sizeOf(this.place().size()).and(
+     *                      Melds.rankOf(next_rank).or(
+     *                              this.place().order() == Order.NORMAL?Melds.rankUnder(next_rank):Melds.rankOver(next_rank)))));
+     * @return 自分が出したい役
+     */</span>
+
+    public Meld requestingPlay() {
+	<span class="comment">//melds : 出す役の候補の役集合</span>
+        <span class="comment">//melds := 自分の手札から構成できる全ての役の集合</span>
+        Melds melds = Melds.parseMelds(this.hand());
+	
+	<span class="comment">//場に何のカードも出されていなければ,</span>
+        if(this.place().isRenew()){
+	    <span class="comment">//候補の中で最大の枚数を持つ役を抽出して,候補とする．</span>
+            melds = melds.extract(Melds.MAX_SIZE);
+        } else{
+	    <span class="comment">//場が縛られていれば</span>
+            if(!this.place().lockedSuits().equals(Suits.EMPTY_SUITS)){
+		<span class="comment">//場を縛っているスート集合に適合する役を抽出して,候補とする．</span>
+                melds = melds.extract(Melds.suitsOf(this.place().lockedSuits()));
+            }
+	    <span class="comment">//next_rank := 場に出されている役のランクの,直ぐ上のランク</span>
+            Rank next_rank;
+            try{next_rank = this.place().type() == Meld.Type.SEQUENCE?
+                                this.rules().nextRankSequence(this.place().rank(),this.place().size(),this.place().order())
+                                :this.place().order() == Order.NORMAL?this.place().rank().higher():this.place().rank().lower();
+            } catch (IllegalArgumentException e){
+		<span class="comment">//場に出されている役より，ランクの大きい役が存在しないとき</span>
+                return PASS;
+            }
+	    <span class="comment">//場に出されている役の,タイプ,枚数,ランク,革命中か否か,に合わせて,「出すことができる」候補に絞る．</span>
+            melds = melds.extract(Melds.typeOf(this.place().type()).and(
+                            Melds.sizeOf(this.place().size()).and(
+                            Melds.rankOf(next_rank).or(
+                                    this.place().order() == Order.NORMAL?Melds.rankUnder(next_rank):Melds.rankOver(next_rank)))));
+        }
+	<span class="comment">//残った候補の中からさらに絞る．たとえば，場のオーダが通常のとき 最も弱い役を候補に残す．</span>
+        melds = melds.extract(this.place().order() == Order.NORMAL?Melds.MIN_RANK: Melds.MAX_RANK);
+
+	<span class="comment">//候補が残っているか？</span>
+        if(melds.size() == 0){
+	    <span class="comment">//候補が残ってないときはパス．</span>
+            return PASS;
+        } else {
+	    <span class="comment">//候補が残っているとき，</span>
+	    <span class="comment">//候補のうち１つを最終候補とする．ここでは，melds.get(0)</span>
+
+	    <span class="comment">//最終候補が一枚のJOKERだったとき,</span>
+            if(melds.get(0).type() == Meld.Type.SINGLE &amp;&amp; melds.get(0).asCards().get(0) == Card.JOKER){
+		<span class="comment">//場のスートに合わせた,最大のランクを持つ役に変更して,それを出す．</span>
+		<span class="comment">//この処理が必要な理由は,たとえば，最終候補が「一枚のJOKERをH6として出す」だったとき，</span>
+		<span class="comment">//場がD5なら，「一枚のJOKERをD+として出す」が最も強力なため．</span>
+                return createSingleMeldJoker(this.place().suits().size()==0?Suit.SPADES:this.place().suits().get(0), (this.place().order() == Order.NORMAL?Rank.JOKER_HIGHEST:Rank.JOKER_LOWEST));
+            }
+        }
+	<span class="comment">//最終候補を出す．</span>
+        return melds.get(0);
+    }
+}
+
+</pre>
+</div>
+</div>
+
+
+
+
+
+</div>
+<hr>
+<p>
+<a href="j-comp.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="j-server.html">[次のページ]</a>
+</p>
+<hr>
+<p>
+<a href="../../index.html">[UECda]</a> →
+<a href="../index.html">[UECda-2010]</a> →
+<a href="manual.html">[マニュアル目次]</a> →
+[サーバープログラムについて（JAVA版）]
+</p>
+</body>
+</html>
+
+
+
+
+
+

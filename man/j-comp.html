@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+<META http-equiv="Content-Style-Type" content="text/css">
+<LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp">
+<LINK rel="INDEX" href="./index.html">
+<link href="ver01.css" rel="stylesheet" type="text/css">
+<TITLE>クライアントの改良、コンパイル、実行（JAVA版）</TITLE>
+</HEAD>
+<BODY>
+<p>
+<a href="j-pref.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="j-client.html">[次のページ]</a>
+</p>
+<hr>
+
+<h1>10. クライアントの改良、コンパイル、実行</h1>
+<div class="text">
+<p>
+この節ではクライアントの改良、コンパイル、実行について解説します。
+</p>
+</div>
+
+<hr class="middle">
+<h2>10.1 クライアントソフトウェアのコンパイル</h2>
+<div class="text">
+<p>
+コンソール上で/workspace/daihinmin/フォルダに移動し、次のコマンドを実行すると
+クライアントプログラムがコンパイルされます。
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+javac -cp daihinmin.jar ****.java
+</pre>
+</div>
+</div>
+<p>
+****には作成したソース名を指定します。
+例えばソース名がBotHoge.javaなら
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+javac -cp daihinmin.jar BotHoge.java
+</pre>
+</div>
+</div>
+<p>
+となります。
+</p>
+<p>
+またdaihinmin.jarファイルを解凍してコンパイルを行うこともできます。
+以下のコマンドでjarファイルを解凍してください。
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+jar -xvf daihinmin.jar
+</pre>
+</div>
+</div>
+
+<p>
+この場合は、次のコマンドでコンパイルしてください。
+</p>
+
+<div class="indent">
+<div class="comm">
+<pre>
+javac BotHoge.java
+</pre>
+</div>
+</div>
+
+</div>
+
+<hr class="middle">
+<h2>10.2 クライアントソフトウェアの動作チェック</h2>
+<div class="text">
+<p>
+開発したクライアントプログラムを実際にサーバーと対戦させる方法について述べます。
+</p>
+
+</div>
+<hr class="middle">
+<h3>10.2.1 サーバーの実行</h3>
+<div class="text">
+<p>
+クライアントプログラムを対戦させるにはサーバーを起動する必要があります。
+/workspace/daihinmin/フォルダに移動後、以下のコマンドを入力してください。
+</p>
+
+<div class="indent">
+<div class="comm">
+<pre>
+java -jar daihinmin.jar
+</pre>
+</div>
+</div>
+
+<p>
+これでサーバー・プログラムの起動は完了です。
+サーバプログラムの詳しい使い方については<a href="j-server.html">第12章</a>をお読みください。
+</p>
+
+</div>
+<hr class="middle">
+<h3>10.2.2 クライアントの実行</h3>
+<div class="text">
+
+<p>
+コンパイル済みのclassファイルが必要です。
+コンパイルは\ref{subsubsec:CompileClient}節を参照してください。
+/workspace/daihinmin/フォルダに移動後、以下のコマンドを実行します。
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+java -cp daihinmin.jar jp.ac.uec.daihinmin.net.TableClient -player $className$ [-address $adress$] [-port $port$]
+</pre>
+</div>
+</div>
+
+<ul>
+<li><span class="midasi">-player $className$</span><br>
+実行するクライアントプログラムのクラス名を指定します（必須）。
+
+<li><span class="midasi"> -address $address$</span><br>
+サーバが起動しているコンピュータのIPアドレス(IPv4)を指定します。
+省略すると 127.0.0.1 が指定されます。
+
+<li><span class="midasi"> -port $port$</span><br>
+サーバが接続を持ち受けているポート番号を指定します。
+省略すると 42485 が指定されます。
+</ul>
+<p>
+例えば、サーバが同じコンピュータの42485ポートで待ち受けているときに、
+BotHoge.classをクライアントとして参加させる場合、次のように実行します。
+</p>
+
+<div class="indent">
+<div class="comm">
+<pre>
+java -cp daihinmin.jar jp.ac.uec.daihinmin.net.TableClient -player BotHoge -address 127.0.0.1 -port 42485
+</pre>
+</div>
+</div>
+<p>
+これは次のように省略できます。
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+java -cp daihinmin.jar jp.ac.uec.daihinmin.net.TableClient -player BotHoge
+</pre>
+</div>
+</div>
+</div>
+<hr class="middle">
+<h3>10.2.3 スタンドアロンモードでの実行</h3>
+<div class="text">
+<p>
+以上で説明したのがソケットを使用した場合の対戦方法です。
+Java版にはこれに加えて一つのプログラムの起動で対戦が行える、スタンドアロンモードが用意されています。
+スタンドアロンモードは手軽に動作の確認ができ、ソケットを介さない分、動作も軽快です。
+</p>
+
+<p>
+スタンドアロンモードで実行する場合
+/workspace/daihinmin/フォルダに移動後、以下のコマンドを実行します。
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+java -jar daihinmin.jar -mode alone -players BotA BotB BotC BotD BotE
+</pre>
+</div>
+</div>
+
+</div>
+
+<hr>
+<p>
+<a href="j-pref.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="j-client.html">[次のページ]</a>
+</p>
+<hr>
+<p>
+<a href="../../index.html">[UECda]</a> →
+<a href="../index.html">[UECda-2010]</a> →
+<a href="manual.html">[マニュアル目次]</a> →
+[サーバープログラムについて（JAVA版）]
+</p>
+</body>
+</html>
+
+
+
+
+
+

@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+<META http-equiv="Content-Style-Type" content="text/css">
+<LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp">
+<LINK rel="INDEX" href="./index.html">
+<link href="ver01.css" rel="stylesheet" type="text/css">
+<TITLE>サーバープログラムについて（JAVA版）</TITLE>
+</HEAD>
+<BODY>
+<p>
+
+<a href="j-client.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="protocol.html">[次のページ]</a>
+</p>
+<hr>
+
+<h1>12. サーバプログラムについて</h1>
+<div class="text">
+<p>
+本章では、サーバープログラムの役割と使用方法を説明します。 
+</p>
+</div>
+
+<hr class="middle">
+<h2><a name="12.1role">12.1 サーバープログラムの役割</a></h2>
+<div class="text">
+<p>
+クライアントプログラムがカードの出し方を決定するのに対して、サーバープログラムは、場の管理を行います。具体的には、次のようなことを管理します。
+</p>
+<ul>
+<li> プロトコルバージョンの管理
+<li> それぞれのプレイヤー（クライアント）の持っているカードの管理
+<li> 各プレイヤーへのカードの配布
+<li> 各プレイヤーから出されたカードのが、正当な物かの判定。
+<li> 場に出ているカードの管理
+<li> 場の状況（革命中か否か・縛り中か否か等）等の管理
+<li> 画面線画
+</ul>
+
+<p>
+サーバープログラムは、クライアントからの接続を待ち、接続してきたクライアントにプレイヤー番号を割り振ります。プレイヤーの人数が 5人になったらゲームが始まります。
+</p>
+
+<p>
+1ゲーム終了までの流れと、その中におけるサーバーの役割は、次のようになります。クライアントとの通信を伴うパートには、行末に「通信」と書いてあります。
+</p>
+
+<ol>
+  <li> サーバーの内部で、各プレイヤーに渡すカードを決定する。
+  <li> 平民・貧民・大貧民にカードを通知する。
+  <li> 大貧民から、強いカードを2枚取り、大富豪に渡すカードに追加する。
+  <li> 大富豪にカードを提示し、大貧民に渡すカードを 2枚受け取る。（通信）
+  <li> 貧民から、強いカードを1枚取り、富豪に渡すカードに追加する。
+  <li> 富豪にカードを提示し、貧民に渡すカードを 1枚受け取る。（通信）
+  <li> 4人のカードが無くなるまで、次を繰り返す。
+    <ol>
+      <li>各プレイヤーに対して、持ち札を通知する。（通信）
+      <li>順番が回ってきたクライアントにターンを回す。（通信）
+      <li>順番が回ってきているクライアントからカードを受け取る。（通信）
+      <li>順番が回ってきているクライアントから貰ったカードが正当か否かを判定する。
+      <li>順番が回ってきているクライアントに、受理・非受理の結果を通知する。（通信）
+      <li>特殊効果を持っているカードだった場合、その処理を行う。
+      <li>場の状況等を更新する。
+      <li>次にカードを出すプレイヤーが誰かを判定する。
+      <li>場のカードと状況を、各クライアントに通知する。（通信）
+      <li>ゲームが続行する場合、各クライアントにゲームが続行することを通知する。（通信）
+    </ol>
+  <li> 1ゲームが終了したことを各クライアントに通知し、次のゲームに移る。（通信）
+</ol>
+
+<p>
+配布キット中に含まれているサンプルクライアントプログラムをベースに開
+発を行なう場合には、上記の流れを意識する必要は、特にないでしょう。
+</p>
+</div>
+
+<h2>12.2 JAVA版について</h2>
+<div class="text">
+<p>
+この節では、Java版のサーバーについて説明します。
+</p>
+</div>
+
+<hr class="middle">
+<h3><a name="12.2.1use">12.2.1 使用方法</a></h3>
+<div class="text">
+<p>
+以下のコマンドを実行してください。
+</p>
+<div class="indent">
+<div class="comm">
+<pre>
+java -jar daihinmin.jar
+</pre>
+</div>
+</div>
+<ul>
+<li><span class="midasi">-version</span><br>
+バージョンが表示されます。
+<li><span class="midasi"> -mode $mode$</span><br>
+aloneを指定するとスタンドアロンモードで実行します。
+<li><span class="midasi"> -players $className0$ $className1$ $className2$ $className3$ $className4$</span><br>
+スタンドアロンモードで実行する際、プレイヤーとして動作するクラス名を指定します。
+この場合必ず5つ指定する必要があります。
+<li><span class="midasi"> -port $port$</span><br>
+クライアント接続を持ち受けるポート番号を指定します。
+省略すると 42485 が指定されます。
+<li><span class="midasi">-games $games$</span><br>
+行う試合数を指定します。省略すると50000回の試合を行います。
+
+<li><span class="midasi">-seatchange $seatchange$</span><br>
+設定した回数毎に席替えを行います。0が指定されると席替えは行われません。
+省略すると3試合毎に席替えを行います。<br>
+この機能は、version version 3RC071115 以降でサポートされています。
+</ul>
+<p>
+実行するとLiveViewerとGraphViewerが起動します。
+</p>
+</div>
+
+<hr class="middle">
+<h3>12.2.2 LiveViewer</h3>
+<div class="text">
+
+<div class="indent">
+<p>
+<img src="img/liveviewer_s.png" width=612 height=442 alt="LiveViewer の外観">
+</p>
+</div>
+<p>
+画面の各部分の意味は、以下の通りです。
+</p>
+
+<ol>
+<li>現在場に出ているカードが表示されます。
+<li>革命や縛りなど、種々のメッセージが表示されます。
+<li>各プレイヤーの持っているカードの一覧です。
+<li>各プレイヤーの状態を表示します。名前、階級の他、パスを行ったか、誰のターンか、勝ち抜けているか、
+等が表示されています。
+<li>操作パネルです。サーバーの動作モードを切り替えます。
+<ul>
+<li>Step:ステップ実行モードです。右にあるNextボタンをクリックする毎に、1ステップずつ進みます。
+<li>Slow:自動実行低速モードです。
+<li>Fast:自動実行高速モードです。
+<li>Off:LiveViewerの描画を切ります。
+このモードから別のモードに切り替えた場合、切り替えが適用されるのは次のゲーム開始時です。
+</ul>
+</ol>
+
+</div>
+
+<hr class="middle">
+<h3>12.2.3 GraphViewer</h3>
+<div class="text">
+<p>
+得点の推移を表示します。
+</p>
+
+<div class="indent">
+<p>
+<img src="img/graphviewer_normal_s.png" width=512 height=384 alt="GraphViewer の外観">
+</p>
+</div>
+<p>
+ウィンドウ下方のコントロールパネルで表示モード切り替えができます。
+</p>
+<ul>
+<li>Normal<br>
+通常の得点(大富豪5点〜大貧民1点)でグラフを描画します。
+<li>Relative<br>
+大富豪2点〜大貧民-2点としてグラフを描画します。
+</ul>
+</div>
+
+
+<hr>
+<p>
+<a href="j-client.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="protocol.html">[次のページ]</a>
+
+</p>
+<hr>
+<p>
+<a href="../../index.html">[UECda]</a> →
+<a href="../index.html">[UECda-2010]</a> →
+<a href="manual.html">[マニュアル目次]</a> →
+[サーバープログラムについて（JAVA版）]
+</p>
+</body>
+</html>
+
+
+
+
+
+

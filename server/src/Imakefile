@@ -1,0 +1,10 @@
+CFLAGS += -DHAVE_NO_CONFIG_H
+DEPENDFLAGS += -DHAVE_NO_CONFIG_H
+
+SRCS = daihu.c external.c tn_protocol.c xdaihu.c mt19937ar.c
+OBJS = daihu.o external.o tn_protocol.o xdaihu.o mt19937ar.o
+LOCAL_LIBRARIES = XawClientLibs -lXpm
+AllTarget(tndhms)
+NormalProgramTarget(tndhms,$(OBJS),NullParameter,$(LOCAL_LIBRARIES),NullParameter)
+DependTarget()
+

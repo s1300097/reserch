@@ -1,0 +1,57 @@
+  .ss { text-decoration:line-through; } 
+  hr.middle { text-align: center; width: 50%}
+  tr.session { background-color: rgb(183, 234, 101); font-weight:bold;}
+  tr.object01 { background-color: #f0f8ff}
+  tr.object02 { background-color: rgb(255, 255, 204)}
+  tr.day { text-align: center; vertical-align: middle; font-size:x-large; font-weight: bold;}
+  #span.strong {font-weight: bold; color: #0000FF }
+  span.strong {font-weight: bold; color: red }
+  #span.strong {font-weight: bold; color: red }
+  span.midasi {font-weight: bold; color: #0000FF }
+  span.comment {bold; color: #0000FF }
+  span.important {font-weight: bold; color: red }
+  span.miss {font-weight: bold; color: red }
+  span.date {font-weight: bold;}
+  td.day {padding: 2%;}
+  div.object01 { background-color: #f0f8ff ; }
+  div.object02 { background-color: rgb(255, 255, 204);}
+  div.text{ padding-left: 2em;}
+  div.indent{ padding-left: 3em;}
+  body {background-color:#EFFFFF ; color:#000000; line-height:135%  }
+  a.menu {white-space: nowrap;}
+  a:link { color: #0000FF } 
+  a:visited { color: #600060 }
+  a:active { color: #FF0000} 
+  p.figure{ text-align:center}
+  div.center{ text-align:center}
+  div.prog{ 
+    border:black thin solid;
+    height:80%;
+    padding-left:1em;
+    border-style:outset;
+    background-color:white;
+    border-width:thick;
+  }
+  div.nestul{ 
+    border:black thin solid;
+    height:100%;
+    border-style:outset;
+    border-width:thick;
+  }
+  div.comm{ 
+    padding-left:1em;
+    border:black thin solid;
+    border-style:outset;
+    background-color:#dfdfdf ;
+    border-width:thick;
+  }
+  div.reference{ 
+    padding-left:1em;
+    border:black thin solid;
+    width:34em;
+    border-style:outset;
+    background-color:#dfdfdf ;
+    border-width:thick;
+  }
+  table.white{background-color:white;}
+

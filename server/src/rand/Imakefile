@@ -1,0 +1,6 @@
+SRCS = main.c mt19937ar.c test.c
+OBJS = main.o mt19937ar.o  test.o
+AllTarget(test)
+NormalProgramTarget(test,$(OBJS),NullParameter,$(LOCAL_LIBRARIES),NullParameter)
+DependTarget()
+

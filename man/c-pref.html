@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<HEAD>
+ <meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+ <META http-equiv="Content-Style-Type" content="text/css">
+ <LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp"> 
+ <LINK rel="INDEX" href="./index.html">
+ <link href="ver01.css" rel="stylesheet" type="text/css"> 
+ <TITLE>クライアント作成環境の構築（C言語版）</TITLE>
+</HEAD>
+<BODY>
+<p>
+<a href="rule.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="c-comp.html">[次のページ]</a>
+</p>
+<hr>
+
+<h1>5. クライアント作成環境の構築（C言語版）</h1>
+<div class="text">
+<p>
+標準クライアントやサーバーソフトウェアを使用するためには、
+それぞれの言語が使用できる環境が必要になります。
+この節では、C言語の環境を構築する方法を説明します。
+</p>
+</div>
+
+<hr class="middle">
+<h2>5.1 動作環境</h2>
+
+<div class="text">
+<p>
+このマニュアルを執筆している段階で、
+C言語版の動作確認がとれているOSは以下の通りです。
+</p>
+
+<ul>
+<li>Solaris
+<li> FreeBSD
+<li> Linux系のOS
+<li> Cygwin をインストールした Windows 環境
+</ul>
+
+<p>
+Windowsの動作するパソコンをお持ちでしたら、Cygwin をインストールして開発するのがおすすめです。Cygwin とは、Windows 環境上に Linux 互換環境を構築するソフトウェアで、導入すれば Linux と同等の開発環境を実現できます。使い慣れた環境でクライアント・プログラムを改良することができるので、特に理由がなければ Cygwin をつかった開発を行なった方が良いでしょう。
+</p>
+
+<p>
+Linux 上で開発したい場合は、knoppix を使うのがいいでしょう。knoppix は <span class="strong">1CD Linux</span>といわれる Linux の一種で、CD-ROM や DVD からパソコンを起動することで、パソコンの中のデータなどを壊すこと無く使用できるものです。
+</p>
+
+<p>
+なお、knoppix を使って開発する場合は気をつけていただきたい点があります。knoppix には CD版と DVD版がありますが、開発環境の都合上 DVD版を使います。
+お使いのパソコンで DVD を書き込めない場合はご連絡ください。連絡先は  <img src="img/dhm.png" alt="daihinmin" width=78 height=17> <img src="img/ice.png" alt="@ice.uec.ac.jp" width=120 height=17> です。CD 版で動作させるために必要なファイルと使用方法を説明をさせていただきます。
+</p>
+<p>
+このマニュアルでは、Cygwinを使った開発方法と、knoppixを使った開発方法の両方を説明します。好みに応じて開発環境を選択してください。
+</p>
+</div>
+
+
+<hr class="middle">
+<h2>5.2 CygwinをインストールしたWindowsでの開発</h2>
+<div class="text">
+<p>
+まず、CygwinをインストールしたWindows環境で開発する方法を解説します。
+</p>
+</div>
+
+<hr class="middle">
+<h3>5.2.1 Cygwinのインストール</h3>
+<div class="text">
+<p>
+なにはともあれ、Cygwinを導入しないことには始まりません。まずはCygwinのインストールからはじめましょう。すでに導入済みの場合はこの節は読み飛ばしても結構です。
+</p>
+<p>
+まずはCygwinのインストーラをダウンロードしましょう。
+ブラウザを起動し、<a href="http://www.cygwin.com/">Cygwin の web サイト</a>[www.cygwin.com/] にアクセスしてください。
+図5.1の web ページが表示されますので、"Install or update now!" というリンクをクリックしてインストーラをダウンロードしましょう。
+図中の赤いカコミ部分です。
+</p>
+
+<p class="figure">
+<A HREF="img/cyg01.png"><img src="img/cyg01_s.png" width=380 height=390 alt="Cygwin 公式 web サイト"></A><br>
+図5.1 ： Cygwin 公式 web サイトから、インストーラをダウンロードしてください<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+ダウンロード先はどこでも良いですが、とりあえずデスクトップに保存しておけばよいでしょう。ダウンロードが完了したら図5.2のようなアイコンが表示されるので、ダブルクリックして起動しましょう。
+</p>
+
+<p class="figure">
+<img src="img/cyg02.png" width=149 height=131 alt="インストーラを起動してインストールを開始しましょう"><br>
+図5.2 ： インストーラのダウンロードが完了したら、このアイコンをダブルクリックして起動しましょう
+</p>
+
+<p>
+インストーラが起動するといろいろ設定が可能ですが、特に設定を変更する必要はありません。図5.3のようなウインドウが表示されたら、URLが.jpで終わっているサイトを選択して「次へ」のボタンをクリックしてください。
+</p>
+
+<p class="figure">
+<A HREF="img/cyg03.png"><img src="img/cyg03_s.png" width=361 height=241 alt="ダウンロードしてくるサイトの選択画面"></A><br>
+図5.3 ： ダウンロードしてくるサイトを選択します。URL が .jp で終わっているサイトが良いでしょう。<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+インストールを進めていくと、図5.4のようなウインドウが表示されます。図中の赤いカコミ部分を一度クリックすると、表示が「Install」に変わります。図のような表示になったら、「次へ」ボタンをクリックしてインストールを進めましょう。
+</p>
+
+<p class="figure">
+<A HREF="img/cyg04.png"><img src="img/cyg04_s.png" width=361 height=274 alt="インストールパッケージの選択"></A><br>
+図5.4 ： インストールパッケージの選択画面<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+<span class="important">&lt;注意&gt;</span> この手順に従うと、必ずしも必要でないパッケージも導入されます。Cygwinについて良く知っている方は必要でない物を省いてしまっても問題ありません。ただし、<span class="strong">Devel</span>と<span class="strong">X11</span>は必ずインストールしてください。<span class="strong">よく分からないときは上の手順通りに進めてください。</span>
+</p>
+
+<p>
+インストーラの指示に従ってインストールを進めていくと、図5.5のようなウインドウが表示されます。この画面はインターネットから必要なファイルをダウンロードし、インストールしていることを意味します。しばらく時間がかかるので、ゆっくりと待ってください。これからの開発にそなえてコーヒーを用意するのもいいアイデアです。
+</p>
+
+<p class="figure">
+<A HREF="img/cyg05.png"><img src="img/cyg05_s.png" width=361 height=274 alt="インストール中の画面"></A><br>
+図5.5 ： インストール中の画面<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+図5.6 の画面が表示されたらインストールは完了です。お疲れ様でした!
+</p>
+
+<p class="figure">
+<A HREF="img/cyg06.png"><img src="img/cyg06_s.png" width=361 height=241 alt="インストール完了画面"></A><br>
+図5.5 ： インストール完了画面。この画面になったら、インストール終了です。<br>
+（画像をクリックで大きい図）
+</p>
+
+</div>
+
+
+<hr class="middle">
+<h3>5.2.2 開発キットのダウンロード、解凍、コピー</h3>
+<div class="text">
+<p>
+<a href="http://uecda.nishino-lab.jp/2009/">UECコンピュータ大貧民大会のWeb サイト</a>[uecda.nishino-lab.jp] にアクセスし、「ダウンロードページ」のリンクをクリックしてください。開発キットの最新版へのリンクをクリックすると、クライアント・プログラムの開発や動作確認に必要なファイル一式がダウンロードできます（図5.6 参照）。
+</p>
+
+<p class="figure">
+<A HREF="img/cyg07.png"><img src="img/cyg07_s.png" width=399 height=363 alt="開発キットダウンロード完了画面"></A><br>
+図5.6 ： UECコンピュータ大貧民大会のサイトから、開発キットをダウンロードしましょう。<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+開発キットは.tar.gz 形式で圧縮されています。Windows の圧縮解凍ソフトで解凍することができますので、好きなソフトで解凍を行ってください。もしお使いの解凍ソフトが.tar.gz 形式に対応していない場合はLhaForge やLhaplus をインストールしましょう。検索エンジンで検索をかければ配布元のサイトを探すことができます。
+</p>
+<p>
+配布キットを解凍してできたフォルダを開くと、daihinmin というフォルダがあります。このフォルダを右クリックして、「コピー」を選択してください。「マイコンピュータ」を開き、「ローカルディスク(C:)」→「cygwin」→「home」という順でフォルダを開くと、「home」の中にユーザ名のフォルダがあるはずです。大抵はAdministratorだとおもいますが、環境によっては違うかもしれません。とにかく、自分のユーザ名のフォルダを開き、図5.7 のように、先ほどコピーしたファイルを貼り付けましょう。
+</p>
+
+<p class="figure">
+<A HREF="img/cyg08.png"><img src="img/cyg08_s.png" width=350 height=298 alt="開発キットのコピー"></A><br>
+図5.7 ： ファイルをコピーして下さい。<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+これで準備は完了です。実際に開発を行う方法は<A HREF="c-comp.html">第6章『クライアントの改良、コンパイル、実行（C言語版）』</A>や<A HREF="j-comp.html">第10章『クライアントの改良、コンパイル、実行（JAVA版）』</A>を参照してください。
+</p>
+</div>
+
+
+<hr class="middle">
+<h2>5.3 knoppix による開発</h2>
+
+
+<hr class="middle">
+<h3>5.3.1 開発にかかるコスト</h3>
+<div class="text">
+<p>
+参加者が必ず用意しなくてはいけないものは以下の通りです。
+</p>
+<ol>
+<li> DVD-Rのメディアを1枚（100円あれば充分買えます）
+<li> 64MB以上のUSBメモリ（2000円くらいで買えます）
+<li> コンピュータ（普通のPCで大丈夫です。これをみているあなたはもう持っているはずです）
+<li> インターネット接続環境（このマニュアルをみているならもう持っているはずです）
+</ol>
+
+<p>
+必要なソフトウェアなどはすべて knoppix に含まれていますので、これ以外に用意してもらうものはありません。
+</p>
+</div>
+
+<hr class="middle">
+<h3>5.3.2 開発環境の準備</h3>
+<div class="text">
+
+<p>
+いよいよクライアントソフトウェアを開発するための準備を始めます。DVD-R のメディア1枚と、USBメモリは用意ができましたか？。準備 OK なら早速始めましょう！。
+</p>
+</div>
+
+<div class="text">
+
+<hr class="middle">
+<h4>knoppixのダウンロード</h4>
+<div class="text">
+<p>
+まずは knoppix をダウンロードしましょう。いま使っているパソコンのブラウザ（Internet Exproler や Firefox など）を起動し、<a href="http://unit.aist.go.jp/itri/knoppix/">KNOPPIX Japanese edition</a>[unit.aist.go.jp] にアクセスしましょう（図5.8参照）。
+</p>
+
+<p class="figure">
+<A HREF="img/ss01.png"><img src="img/ss01_s.png" width=380 height=373 alt="KNOPPIX Japanese edition のページの外観"></A><br>
+図5.8 ： KNOPPIX の配布サイト。ダウンロードをクリックして下さい。<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+表記はCDですがとりあえず気にせず、CD[iso 版] というアイコンをクリックしてください（図5.9 参照）。
+</p>
+
+<p class="figure">
+<A HREF="img/ss02.png"><img src="img/ss02_s.png" width=365 height=381 alt="CD版のダウンロードをクリック"></A><br>
+図5.9 ： CD[iso 版] をクリックすると別のページにジャンプします。<br>
+（画像をクリックで大きい図）
+</p>
+
+
+<p>ダウンロードするサイトを選択するページにジャンプしますので、「最新ダウンロードサイト」のリンクをクリックしてください（図5.10 参照）。</p>
+
+<p class="figure">
+<A HREF="img/ss03.png"><img src="img/ss03_s.png" width=364 height=381 alt="「最新ダウンロードサイト」以下のどれかをクリックして下さい。"></A><br>
+図5.10 ： 「最新ダウンロードサイト」以下に書いてあるリンクならどれでも大丈夫
+です<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+するといろいろなファイルが表示されますので、knoppix v5.0.1DVD （以下略） というファイルで、名前の末尾が .iso になっているものをクリックしてください。knoppix のダウンロードが始まります（図5.11 参照）。
+</p>
+<p class="figure">
+<A HREF="img/ss04.png"><img src="img/ss04_s.png" width=347 height=325 alt="knoppix v5.0.1DVD （以下略） というファイルをダウンロードします"></A><br>
+図5.11 ： knoppix v5.0.1DVD （以下略）というフィルをダウンロードして下さい
+です<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+ダウンロードが完了したら、ダウンロード先に指定したフォルダに新しいファイルができているはずです。このファイルを、あらかじめ用意しておいたDVD-R に書き込めば knoppix の準備は完了です（図5.12 参照）。
+</p>
+<p class="figure">
+<img src="img/ss05.png" width=213 height=181 alt="DVD-R に書き込んで下さい"><br>
+図5.12 ： DVDイメージを、DVD-R に書き込んで下さい
+です
+</p>
+
+
+</div>
+
+<hr class="middle">
+<h4>開発キットの準備</h4>
+<div class="text">
+<p>
+<A HREF="http://uecda.nishino-lab.jp/2009/">UECコンピュータ大貧民大会の web サイト</A>[uecda.nishino-lab.jp]にアクセスして、クライアントソフトウェア開発キットをダウンロードしてください（図5.13参照）。
+</p>
+<p class="figure">
+<A HREF="img/cyg07.png"><img src="img/cyg07_s.png" width=399 height=363 alt="開発キットダウンロード完了画面"></A><br>
+図5.13 ： UECコンピュータ大貧民大会のサイトから、開発キットをダウンロードしましょう。<br>
+（画像をクリックで大きい図）
+</p>
+
+<p>
+ダウンロードが完了したらUSBメモリにコピーしておいてください。これで準備は完了です。
+</p>
+
+</div>
+
+<hr class="middle">
+<h4>knoppixのCDからPCを起動する</h4>
+<div class="text">
+<p>
+PC の電源を入れたらすかさず knoppix の DVD を DVD ドライブに入れてください。もし間に合わなかったら、あらかじめドライブに DVD を入れておき、再起動しても大丈夫です。PC のメーカーによって状況はちがいますが、たいてい DVD-ROM からの起動ができるようになっているはずなので DVD から PC を起動してください。しばらく待つと knoppix が起動するはずです。
+</p>
+<p>
+knoppix が起動したら、準備しておいた USBメモリを PC に接続しましょう。自動的に認識が行われて、デスクトップ上にアイコンが表示されるはずです。
+</p>
+<p>
+これで準備は完了です。第6章では実際にクライアントソフトウェアを改良したり、実行する方法を説明します。
+</p>
+</div>
+</div>
+
+<hr>
+<p>
+<a href="rule.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="c-comp.html">[次のページ]</a>
+</p>
+<hr>
+<p>
+<a href="../../index.html">[UECda]</a> →
+<a href="../index.html">[UECda-2010]</a> → 
+<a href="manual.html">[マニュアル目次]</a> →
+[クライアント作成の準備]
+</p>
+</body>
+</html>
+

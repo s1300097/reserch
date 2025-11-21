@@ -1,0 +1,5 @@
+another_client/
+random_client/
+server/src/logs/
+.DS_Store
+._*

@@ -1,0 +1,280 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<HEAD>
+ <meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+ <META http-equiv="Content-Style-Type" content="text/css">
+ <LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp"> 
+ <link href="ver01.css" rel="stylesheet" type="text/css"> 
+ <LINK rel="INDEX" href="./index.html">
+ <TITLE>第5回 UEC コンピュータ 大貧民大会 マニュアル HTML版</TITLE>
+</HEAD>
+<BODY>
+
+<p>
+[UECda] →
+<a href="../index.html">[UECda-2010]</a> → 
+[マニュアル目次]
+</p>
+<hr>
+<div style="text-align: center;">
+<h1 style="line-height:100%">第5回 UEC コンピュータ大貧民大会<br>マニュアル<br>20101114版</h1>
+</div>
+
+<hr>
+<ul>
+<!--
+<li>2009/11/06：
+
+<div class="text">
+「5.2.1 Cygwinのインストール」の解説用画像を更新しました。
+</div>
+<li>2009/10/16：
+<div class="text">
+新しいバージョンのC言語版サーバー（tndhms_0.30)に合わせて、「8.サーバープログラムについて（C言語版）」を更新しました。
+</div>
+-->
+<li>2010/11/14：
+<div class="text">
+JAVA版開発キットのメソッドrankOverとrankUnderに関する記載に誤りがありましたので、修正しました。
+</div>
+<li>2010/09/15：
+<div class="text">
+20100915版（HTML）がリリースされました。 
+第5回 UEC コンピュータ大貧民大会向けマニュアルの初版となります。
+</div>
+</ul>
+
+<hr>
+<ol>
+  <li> <a href="intro.html">はじめに</a>
+
+  <li> <a href="reguration.html">大会運営方法</a>
+    <ol>
+      <li> 自作プログラムの部
+        <ol>
+          <li> 対象者
+          <li> おおまかな流れ
+          <li> 対戦の方法
+          <li> ポイントの割り当て方
+          <li> 大会優勝者の決定方法
+	  <li> 飛び入り参加者の自作プログラムの部への参加
+        </ol>
+
+      <li> 飛び入り参加の部
+        <ol>
+          <li> 対象者
+          <li> おおまかな流れ
+          <li> 大会優勝者の決定方法
+        </ol>
+    </ol>
+  <li> <a href="assign.html">参加方法</a>
+
+    <ol>
+      <li> 方法1 自分で作成する
+        <ol>
+          <li> クライアントソフトウェア開発キットの入手
+          <li> クライアントソフトウェアの開発
+          <li> 動作チェック
+          <li> 実行委員会にソースコードを送る
+        </ol>
+      <li> 方法2 実行委員と相談して作成する
+    </ol>
+
+  <li> <a href="rule.html">UEC標準ルール</a>
+    <ol>
+      <li> 基本的なルール
+        <ol>
+          <li> カードの枚数
+          <li> カードの配布方法
+          <li> カードの強さ
+        </ol>
+
+      <li> カードの出し方
+        <ol>
+          <li> パス
+          <li> ゲームの開始
+          <li> 順番の回し方
+          <li> 場の流れ方
+          <li> 上がり方
+          <li> 複数枚同時出し（ペア） 
+          <li> 階段（連番） 
+          <li> 革命
+          <li> 順位
+        </ol>
+
+      <li> カードの役割についてのルール
+        <ol>
+          <li> ジョーカー
+          <li> スペードの3 
+          <li> 8 のカード（マークは問わない） 
+        </ol>
+      <li> 特殊なルール
+        <ol>
+          <li> 8 切り
+          <li> しばり
+        </ol>
+
+      <li> 今大会に特有のルール
+        <ol>
+          <li>千日手（無限ループの処理）
+          <li>計算量
+        </ol>
+      <li> ルールに関する質問先
+    </ol>
+</ol>
+<hr class="middle">
+<ol start="5">
+  <li> <a href="c-pref.html">クライアント作成環境の構築（C言語版）</a>
+
+    <ol>
+      <li> 動作環境
+      <li> CygwinをインストールしたWindowsでの開発
+        <ol>
+          <li> Cygwinのインストール
+          <li> 開発キットのダウンロード、解凍、コピー
+        </ol>
+      <li> knoppix による開発
+        <ol>
+
+          <li> 開発にかかるコスト
+          <li> 開発環境の準備
+        </ol>
+    </ol>
+  <li> <a href="c-comp.html">クライアントの改良、コンパイル、実行（C言語版）</a>
+    <ol>
+      <li> 改良の準備
+        <ol>
+
+          <li> cygwin の場合
+          <li> knoppix の場合
+        </ol>
+      <li> クライアントの改良
+        <ol>
+          <li> Cygwin の場合
+          <li> knoppix の場合
+        </ol>
+      <li> クライアントソフトウェアのコンパイル
+      <li> クライアントソフトウェアの動作チェック
+        <ol>
+
+          <li> 準備（Cygwin の場合） 
+          <li> 準備（knoppix の場合）
+          <li> サーバーの実行
+        </ol>
+      <li> クライアントの実行
+        <ol>
+          <li> Cygwin の場合
+          <li> knoppix の場合
+        </ol>
+
+      <li> クライアントの改良について
+    </ol>
+  <li> <a href="c-client.html">標準クライアント（C言語版）</a>
+    <ol>
+      <li>ソースの構造
+      <li>宣言済の変数一覧
+      <li>構造体の解説
+      <li>関数一覧
+    </ol>
+  <li> <a href="c-server.html">サーバープログラムについて（C言語版）</a>
+
+    <ol>
+      <li> サーバープログラムの役割
+      <li> インストール方法
+      <li> 使用方法
+    </ol>
+</ol>
+<hr class="middle">
+<ol start="9">
+  <li> <a href="j-pref.html">クライアント作成環境の構築（JAVA 071115版）</a>
+
+    <ol>
+      <li> 動作環境
+      <li> 開発キットのダウンロード
+    </ol>
+  <li> <a href="j-comp.html">クライアントの改良、コンパイル、実行（JAVA 071115版）</a>
+    <ol>
+      <li> クライアントソフトウェアのコンパイル
+      <li> クライアントソフトウェアの動作チェック
+      <ol>
+
+        <li>サーバーの実行
+        <li>クライアントの実行
+        <li>スタンドアロンモードでの実行
+      </ol>
+    </ol>
+  <li> <a href="j-client.html">標準クライアント（JAVA 071115版）</a>
+    <ol>
+      <li>クライアントプログラムの構造
+      <li>クライアントの改良について
+      <li>戦略の実装
+        <ol>
+
+          <li>requestingGivingCards()メソッドの実装
+          <li>requestingPlay()メソッドの実装
+          <li>その他のメソッドのオーバーライド
+        </ol>
+      <li>カードパッケージの使用例
+      <li>BotSkeletonクラスのメソッド一覧
+      <li>BotPlain
+    </ol>
+  <li> <a href="j-server.html">サーバープログラムについて（JAVA 071115版）</a>
+    <ol>
+      <li> サーバープログラムの役割
+      <li> JAVA版について
+      <ul>
+
+        <li> 使用方法
+        <li> LiveViewer
+        <li> GraphViewer
+      </ul>
+    </ol>
+</ol>
+<hr class="middle">
+<ol start="13">
+  <li> <a href="protocol.html">通信のプロトコル</a>
+
+    <ol>
+      <li> 概要
+      <li> カードの表現
+      <li> 通信
+        <ol>
+          <li> 通信の概略図
+          <li> 通信の繰り返し
+          <li> ゲーム開始前の準備
+        </ol>
+
+      <li> 補足事項
+        <ol>
+          <li> ジョーカー
+          <li> パス
+        </ol>
+      <li> プロトコルの知識は必要なのか?
+    </ol>
+  <li> <a href="qanda.html">質問などの受付け</a>
+
+    <ol>
+      <li> よくある質問
+        <ol>
+          <li> 大会に関する質問
+          <li> ルールに関する質問
+          <li> プログラムに関する質問
+        </ol>
+      <li> 質問などの受付け
+    </ol>
+
+  <li> <a href="conclusion.html">おわりに</a>
+  <li> <a href="new.html">更新履歴</a>
+  <li> <a href="miss.html">誤植のおもひで</a>
+</ol>
+
+<hr>
+<p>
+<a href="../../index.html">[UECda]</a> →
+
+<a href="../index.html">[UECda-2010]</a> → 
+[マニュアル]
+</p>
+</body>
+</html>

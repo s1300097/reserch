@@ -1,0 +1,502 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<HEAD>
+ <meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+ <META http-equiv="Content-Style-Type" content="text/css">
+ <LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp"> 
+ <LINK rel="INDEX" href="./index.html">
+ <link href="ver01.css" rel="stylesheet" type="text/css"> 
+ <TITLE>標準クライアント（C言語版）</TITLE>
+</HEAD>
+<BODY>
+<p>
+<a href="c-comp.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="c-server.html">[次のページ]</a>
+</p>
+<hr>
+
+<h1>7. 標準クライアント（C言語版）</h1>
+<div class="text">
+<p>
+ここでは、C言語版標準クライアント version 0.20 のソースファイルの構成や、
+宣言されている関数や変数の簡単な説明をします。
+</p>
+</div>
+
+<hr class="middle">
+<h2>7.1 ソースの構造</h2>
+<div class="text">
+
+<ul>
+<li><span class="midasi">client.c</span><br>
+クライアントのメインとなるソースです。
+
+<li><span class="midasi">daihinmin.c daihinmin.h</span><br>
+大貧民のカード選択のための変数や関数の宣言や定義がされています。カード選択のアルゴリズムを拡張のため関数の追加や変更を行う場合は、ここに記述をすると良いでしょう。
+
+<li><span class="midasi">connection.c connection.h</span><br>
+サーバとの通信に必要な変数や関数の宣言や定義が記述されています。ここを書き直す必要は普通ないでしょう。
+</ul>
+
+<h3>client.cの概要</h3>
+<p>
+ client.cの大まかな流れは下記のようになっています。
+</p>
+<ol>
+<li>サーバに接続し、プレイヤー番号を受け取る。（entryToGame()）
+<li>シャッフルされたカードをサーバから受け取る。（startGame()）
+<li>富豪・大富豪ならば、交換する不要なカードを 選ぶ。（change()）
+<li>サーバから送られてくる手札の情報を受け取る。（receiveCards()）
+<li>自分のターンならば、出すカードを選ぶ。
+<li>場に出されたカードの情報をサーバから受け取る。（sendCards()）
+<li>場に出たカードの情報を受け取ったあとの処理を行う。(lookFild())
+<li>そのゲームが終わるまで 4 へ戻る。
+<li>全ゲームが終わるまで 2 へ戻る。
+<li>接続を切って終了する。（closeSocket()）
+</ol>
+</div>
+<hr class="middle">
+<h2>7.2 宣言済の変数一覧</h2>
+<div class="text">
+<p>
+ すでに標準クライアントで宣言されている変数のリストは以下の通りです。
+</p>
+<hr class="middle">
+<h3>グローバル変数</h3>
+<div class="indent">
+<table class="white" summary="グローバル変数" border="1">
+<tr><td>const int g_logging</td><td>1 のとき詳細なログを出力する。</td></tr>
+<tr><td>struct state_type state</td><td>場の状態を格納する</td></tr>
+</table>
+</div>
+
+<hr class="middle">
+<h3>mainのローカル変数</h3>
+<div class="indent">
+<table class="white" summary="main のローカル変数" border="1">
+<tr><td>int my_playernum</td><td>プレイヤー番号</td></tr>
+<tr><td>int whole_gameend_flag=0</td><td>全ゲームが終了したら1となるフラグ</td></tr>
+<tr><td>int one_gameend_flag=0</td><td>1ゲームが終了したら1となるフラグ</td></tr>
+<tr><td>int accept_flag=0</td><td>提出したカードが受理されたかを判別</td></tr>
+<tr><td>int game_count=0</td><td>ゲームの回数</td></tr>
+
+<tr><td>int own_cards_buf[8][15]</td><td>手札のテーブルをおさめる変数</td></tr>
+<tr><td>int own_cards[8][15]</td><td>作業用のテーブル</td></tr>
+<tr><td>int ba_cards_buf[8][15]</td><td>場に出たカードのテーブル</td></tr>
+<tr><td>int ba_cards[8][15]</td><td>作業用のテーブル</td></tr>
+</table>
+</div>
+<hr class="middle">
+<h3>connection.cの静的グローバル変数</h3>
+<div class="indent">
+<table class="white" summary="グローバル変数" border="1">
+<tr><td>static char server_name[256]</td><td>サーバのアドレスを格納</td></tr>
+<tr><td>static uint16_t port</td><td>ポート番号を格納</td></tr>
+<tr><td>static char user_name[15]</td><td>クライアント名を格納</td></tr>
+<tr><td>static int g_sockfd</td><td></td></tr>
+<tr><td>static int g_buf_len</td><td>サーバとの通信に使用</td></tr>
+<tr><td>static struct sockaddr_in g_client_addr</td></tr>
+<tr><td>static int table_count=0</td><td>テーブルを受信した回数</td></tr>
+</table>
+</div>
+<hr class="middle">
+<h3>state_type</h3>
+<div class="text">
+<p>state_type は現在の状態の情報を保持するために用います。</p>
+<div class="prog">
+<pre>
+struct state_type
+{
+ int ord;            現在場に出ているカードの強さ
+ int sequence;       場に出ているカードが階段なら1、枚数組なら0
+ int qty;            場に出ているカードの枚数
+ int rev;            革命なら1、そうでないなら0
+ int b11;            11バックなら1、そうでないなら0（未使用）
+ int lock;           しばりのとき1、そうでないとき0
+ int onset;          場に何も出ていないとき1、そうでないとき0
+ int suit[5];        場に出ているカードのマーク。suit[i]が1のとき、
+                     マークがiのカードが出ている。
+ int player_qty[5];  各プレイヤの残り枚数
+ int player_rank[5]; 各プレイヤのランク
+ int seat[5];        各席に着いているプレイヤの番号
+
+ int joker;          自分がJokerを持っているとき1、そうでないとき0。
+}
+</pre>
+</div>
+</div>
+</div>
+
+<hr class="middle">
+<h2>7.3 関数一覧</h2>
+
+<div class="text">
+<p> 標準クライアントでは、次のような関数をすでに定義しています。
+ 関数を追加する場合は重複のないように注意してください。</p>
+
+<hr class="middle">
+<h3>***daihinmin.c***</h3>
+
+<ul>
+<li><p><span class="midasi">void getState(int cards[8][15])</span><br>
+ カードのテーブルから得られる情報を読み込む。<br>
+ 引数は手札のカードのテーブル。<br>
+ 情報はグローバル変数stateに格納される。
+</p>
+<li><p><span class="midasi">void getField(int cards[8][15])</span><br>
+
+ 場に出たカードから得られる情報を得る。<br>
+ 引数は場に出たカードのテーブル。<br>
+ 情報はグローバル変数stateに格納される。
+</p>
+<li><p><span class="midasi">void showState(struct state_type *state)</span><br>
+
+ 引数で渡された状態stateの内容を表示する。
+</p>
+<li><p><span class="midasi">void cardsOr(int cards1[8][15],int cards2[8][15])</span><br>
+
+ cards1にcards2にあるカードを加える。
+</p>
+<li><p><span class="midasi">void cardsAnd(int cards1[8][15],int cards2[8][15])</span><br>
+
+ cards1のカードのうち、cards2にあるものだけをcards1にのこす。
+</p>
+
+<li><p><span class="midasi">void cardsDiff(int cards1[8][15],int cards2[8][15])</span><br>
+ cards1からcards2にあるカードを削除する。
+</p>
+
+<li><p><span class="midasi">void cardsNot(int cards[8][15])</span><br>
+ カードの有無を反転させる。
+</p>
+
+<li><p><span class="midasi">void outputTable(int table[8][15])</span><br>
+ 引数で渡されたカードのテーブルを出力する。
+</p>
+
+<li><p><span class="midasi">void copyTable(int dest_table[8][15], int org_table[8][15])</span><br>
+ 引数で渡されたカードのテーブルorg_tableを
+ カードのテーブルdest_tableにコピーする。
+</p>
+
+<li><p><span class="midasi">void copyCards(int dest_cards[8][15],int org_cards[8][15])</span><br>
+ 引数で渡されたカードのテーブルorg_cardsのカード情報の部分を
+ カードのテーブルdest_cardsにコピーする。
+</p>
+
+<li><p><span class="midasi">void clearCards(int cards[8][15])</span><br>
+ 引数で渡されたカードのテーブルcardsのカード情報の部分を全て0にし、
+ カードを一枚も無い状態にする。
+</p>
+
+<li><p><span class="midasi">void clearTable(int cards[8][15])</span><br>
+ 引数で渡されたカードのテーブルcardsを全て0にする。
+</p>
+
+<li><p><span class="midasi">int beEmptyCards(int cards[8][15])</span><br>
+ 引数で渡されたカードのテーブルcardsの含むカードの枚数が0のとき1を、
+ それ以外のとき0を返す
+</p>
+
+<li><p><span class="midasi">int qtyOfCards(int cards[8][15])</span><br>
+ 引数で渡されたカードのテーブルcardsの含むカードの枚数を返す
+</p>
+
+<li><p><span class="midasi">void makeJKaidanTable(int tgt_cards[][15], int my_cards[][15])</span><br>
+ 渡されたカードのテーブルmy_cardsから、階段で出せるかどうかを解析し、
+ 結果をテーブルtgt_cardsに格納する。
+</p>
+
+<li><p><span class="midasi">void makeKaidanTable(int tgt_cards[][15], int my_cards[][15])</span><br>
+ 渡されたカードのテーブルmy_cardsから、ジョーカーを考慮し階段で出せるかどうかを解析し、
+ 結果をテーブルtgt_cardsに格納する。
+</p>
+
+<li><p><span class="midasi">void makeGroupTable(int tgt_cards[][15], int my_cards[][15])</span><br>
+ 渡されたカードのテーブルmy_cardsから、2枚以上の枚数組で出せるかどうかを解析し、 結果をテーブルtgt_cardsに格納する。
+</p>
+
+<li><p><span class="midasi">void makeJGroupTable(int tgt_cards[][15], int my_cards[][15])</span><br>
+
+ 渡されたカードのテーブルmy_cardsから、
+ ジョーカーを考慮し2枚以上の枚数組で出せるかどうかを解析し、
+ 結果をテーブルtgt_cardsに格納する。
+</p>
+
+<li><p><span class="midasi">void lowCards(int out_cards[8][15],int my_cards[8][15],int threshold)</span><br>
+
+ 渡されたカードのテーブルmy_cardsのカード部分を
+ threshold以上の強いカードを除去して,thresholdより弱いカードだけをのこして、
+ カードのテーブルout_cardsに格納する。
+</p>
+
+<li><p><span class="midasi">void highCards(int out_cards[8][15],int my_cards[8][15],int threshold)</span><br>
+
+ 渡されたカードのテーブルmy_cardsのカード部分を
+ threshold以下の弱いカードを除去し,thresholdより強いカードのみををのこして、
+ カードのテーブルout_cardsに格納する
+</p>
+
+<li><p><span class="midasi">int nCards(int n_cards[8][15],int target[8][15],int n)</span><br>
+
+ n枚のペアあるいは階段のみをn_cards にのこす。<br>
+ このときテーブルにのる数字はnのみである。<br>
+ カードが無いときは0,あるときは1をかえす。
+</p>
+
+<li><p><span class="midasi">void lockCards(int target_cards[8][15],int suit[5])</span><br>
+
+ 大域変数state.suitの１が立っているスートのみカードのテーブルtarget_cardsに残す。
+</p>
+
+<li><p><span class="midasi">void lowGroup(int out_cards[8][15],int my_cards[8][15],int group[8][15])</span><br>
+
+ 渡された枚数組で出せるカードの情報をのせたgroupとカードのテーブルmy_cardsから
+ 最も弱い枚数組を探し、見つけたらカードのテーブルout_cardsにそのカードを載せる。
+</p>
+
+<li><p><span class="midasi">void highGroup(int out_cards[8][15],int my_cards[8][15],int group[8][15])</span><br>
+ 渡された枚数組で出せるカードの情報をのせたgroupとカードのテーブルmy_cardsから
+ 最も強い枚数組を探し、見つけたらカードのテーブルout_cardsにそのカードを載せる。</p>
+
+<li><p><span class="midasi">void lowSequence(int out_cards[8][15],int my_cards[8][15],int sequence[8][15])</span><br>
+ 渡された階段で出せるカードの情報をのせたgroupとカードのテーブルmy_cardsから
+ 最も弱い階段を探し、見つけたらカードのテーブルout_cardsにそのカードを載せる。
+</p>
+
+<li><p><span class="midasi">void highSequence (int out_cards[8][15],int my_cards[8][15],int sequence[8][15])</span><br>
+ 渡された階段で出せるカードの情報をのせたgroupとカードのテーブルmy_cardsから
+ 最も強い階段を探し、見つけたらカードのテーブルout_cardsにそのカードを載せる。
+</p>
+
+<li><p><span class="midasi">void removeGroup(int out_cards[8][15],int my_cards[8][15],int group[8][15])</span><br>
+ 渡された枚数組で出せるカードの情報をのせたgroupとカードのテーブルmy_cardsから
+ 枚数組以外のカードを探し、カードのテーブルout_cardsにそのカードを載せる。
+</p>
+
+<li><p><span class="midasi">void removeSequence(int out_cards[8][15],int my_cards[8][15],int sequence[8][15])</span><br>
+ 渡された階段で出せるカードの情報をのせたgroupとカードのテーブルmy_cardsから
+ 階段以外のカードを探し、カードのテーブルout_cardsにそのカードを載せる。
+</p>
+
+<li><p><span class="midasi">void lowSolo(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+ 弱い方のカードから探して,最初に見つけたカードを一枚out_cardsにのせる。<br>
+ joker_flagが1のとき,カードが見つからなければ,jokerを一枚out_cardsにのせる。
+</p>
+
+<li><p><span class="midasi">void highSolo(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+
+ 強い方のカードから探して,最初に見つけたカードを一枚out_cardsにのせる。<br>
+ joker_flagがあるとき,カードが見つからなければ,jokerを一枚out_cardsにのせる。
+</p>
+
+<li><p><span class="midasi">void change(int out_cards[8][15],int my_cards[8][15],int num_of_change)</span><br>
+
+ カード交換時のアルゴリズム。<br>
+ 大富豪あるいは富豪が、大貧民あるいは貧民にカードを渡す時のカードを
+ カードのテーブルmy_cardsと交換枚数num_of_changeに応じて、
+ 弱い方のカードから選びカードのテーブルout_cardsにのせる。
+</p>
+<li><p><span class="midasi">void lead(int out_cards[8][15],int my_cards[8][15])</span><br>
+
+ 新しくカードを提出するときの選択ルーチン。<br>
+ カードのテーブルmy_cardsから階段=&gt;ペア=&gt;一枚の順で枚数の多いほうから走査し,
+ 弱い方カードからみて、はじめて見つけたものを out_cardsにのせる。
+</p>
+
+<li><p><span class="midasi">void leadRev(int out_cards[8][15],int my_cards[8][15])</span><br>
+
+ 革命時用の新しくカードを提出するときの選択ルーチン。<br>
+ カードのテーブルmy_cardsから階段=&gt;ペア=&gt;一枚の順で枚数の多いほうから走査し,
+ 強い方カードからみて、はじめて見つけたものを out_cardsにのせる。
+</p>
+
+<li><p><span class="midasi">void followSolo(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+
+ 他のプレーヤーに続いてカードを一枚で出すときのルーチン。<br>
+ joker_flagが1の時ジョーカーを使おうとする。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void followGroup(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+
+ 他のプレーヤーに続いてカードを枚数組で出すときのルーチン。<br>
+ joker_flagが1の時ジョーカーを使おうとする。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void followSequence(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+
+ 他のプレーヤーに続いてカードを階段で出すときのルーチン。<br>
+ joker_flagが1の時ジョーカーを使おうとする。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void followSoloRev(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+ 革命状態のときに他のプレーヤーに続いてカードを一枚で出すときのルーチン。<br>
+ joker_flagが1の時ジョーカーを使おうとする。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void followGroupRev(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+
+ 革命状態のときに他のプレーヤーに続いてカードを枚数組で出すときのルーチン。<br>
+ joker_flagが1の時ジョーカーを使おうとする。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void followSequenceRev(int out_cards[8][15],int my_cards[8][15],int joker_flag)</span><br>
+
+ 革命状態のときに他のプレーヤーに続いてカードを階段で出すときのルーチン。<br>
+ joker_flagが1の時ジョーカーを使おうとする。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void follow(int out_cards[8][15],int my_cards[8][15])</span><br>
+
+ 他のプレーヤーに続いてカードを出すときのルーチン。<br>
+ 場の状態stateに応じて一枚、枚数組、階段の場合に分けて
+ 対応すれる関数を呼び出す。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">void followRev(int out_cards[8][15],int my_cards[8][15])</span><br>
+
+ 他のプレーヤーに続いてカードを出すときのルーチン。<br>
+ 場の状態stateに応じて一枚、枚数組、階段の場合に分けて
+ 対応すれる関数を呼び出す。<br>
+ 提出するカードはカードのテーブルout_cardsに格納される。
+</p>
+
+<li><p><span class="midasi">int cmpCards(int cards1[8][15],int  cards2[8][15])</span><br>
+
+ カードのテーブルcards1、cards2のカード部分を比較し、
+ 異なっていれば1、一致していれば0を返す。
+</p>
+
+<li><p><span class="midasi">int cmpState(struct state_type* state1,struct state_type* state2)</span><br>
+
+ 状態を格納するstate1とstate2を比較し、一致すれば0を、
+ 異なっていればそれ以外を返す。
+</p>
+
+<li><p><span class="midasi">int getLastPlayerNum(int ba_cards[8][15])</span><br> 最後パス以外のカード提出をしたプレーヤーの番号を返す。<br>
+ この関数を正常に動作させるためには、
+ サーバから場に出たカードをもらう度に
+ この関数を呼び出す必要がある。
+ </p>
+</ul>
+
+<hr class="middle">
+<h4>***connection.c***</h4>
+<ul>
+<li><p><span class="midasi">int entryToGame(void)</span><br>
+
+ 引数としてサーバのアドレスとポート番号、クライアント名を受取り、
+ サーバにコネクションをはる。<br>
+ クライアント名を含むクライアントの情報をサーバに送信する。
+</p>
+
+<li><p><span class="midasi">int startGame(int table[8][15])</span><br>
+ シャッフルされたゲームの最初の手札をカードを受け取り、
+ table に格納する。<br>
+ また、ゲーム数をカウントし、その値を返す。
+</p>
+<li><p><span class="midasi">void sendChangingCards(int cards[8][15])</span><br>
+
+ カード交換時用のカード提出関数。<br>
+ 引数のカードのテーブルcardsの内容をサーバに送信する。
+</p>
+<li><p><span class="midasi">int receiveCards(int cards[8][15])</span><br>
+
+ ターン毎にカードを受け取るための関数。<br>
+ サーバから受け取ったテーブル情報を引数cardsに格納する。<br>
+ 自分の順番が回ってきているとき1を、
+ そうでないとき0を返す。
+</p>
+
+<li><p><span class="midasi">int sendCards(int cards[8][15])</span><br>
+
+ 引数のカードのテーブルをサーバに送信する。<br>
+ また、受理したか否かを受信し、その値を返す。
+</p>
+<li><p><span class="midasi">void lookField(int cards[8][15])</span><br>
+
+ そのターンのカード提出後の場の情報を解析する。<br>
+ 引数には場の情報を持つテーブルをとる。
+</p>
+
+<li><p><span class="midasi">void checkArg(int argc,char* argv[])</span><br>
+ 渡されたコマンドラインから与えられた引数の情報を解析し、必要に応じて
+ サーバアドレス、ポート番号、クライアント名を変更する。
+</p>
+
+<li><p><span class="midasi">int beGameEnd(void)</span><br>
+ 各ターンの終わりにゲームが終了したか否かのフラグを受信する関数。<br>
+ ゲームが続くときは0を、
+ 1ゲームが終了したときは1を、
+ 全ゲームが終了したときは2をかえす。
+</p>
+
+<li><p><span class="midasi">int closeSocket()</span><br>
+
+ クライアントプログラムの終了前に接続を切断する関数。<br>
+ 成功した場合は 0 を返す。<br>
+ エラーが発生した場合は -1 を返す。
+ </p>
+</ul>
+
+<hr class="middle">
+<h4>***connection.c 静的関数***</h4>
+
+<ul>
+<li><p><span class="midasi">static int refreshTable(int table_val[8][15])</span><br>
+
+ テーブルをサーバから受け取る静的関数。<br>
+ table_valの内容をバイトオーダーを考慮して
+ サーバに受信する。
+</p>
+
+<li><p><span class="midasi">static int sendTable(int table_val[8][15])</span><br>
+
+ テーブルをサーバに送信する静的関数。<br>
+ table_valの内容をバイトオーダーを考慮して
+ サーバに送信する。
+</p>
+
+<li><p><span class="midasi">static int openSocket(const char addr[], uint16_t port_num)</span><br>
+
+ ソケットの設定・接続を行う静的関数。<br>
+ 引数で与えられたアドレス、ポートに接続し、
+ コネクションをはる。。<br>
+ 成功時0、失敗時-1を返す。
+</p>
+
+<li><p><span class="midasi">static int sendProfile(const char user[15])</span><br>
+
+ クライアントの情報をサーバに送信する静的関数。<br>
+ クライアント名とプロトコルバージョンを通知する。
+ </p>
+</ul>
+</div>
+
+
+<hr>
+<p>
+<a href="c-comp.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="c-server.html">[次のページ]</a>
+</p>
+<hr>
+<p>
+<a href="../../index.html">[UECda]</a> →
+
+<a href="../index.html">[UECda-2010]</a> → 
+<a href="manual.html">[マニュアル目次]</a> →
+[クライアントの改良、コンパイル、実行]
+</p>
+</body>
+</html>
+
