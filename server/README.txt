@@ -1,160 +1,160 @@
 /********************************************************************/
-/*     $BBgIOL1%5!<%P!<(B tndhms version 0.32   (2010/11/19)            */
-/*     $B!JBh(B5$B2s(B UEC $B%3%s%T%e!<%?BgIOL1Bg2q(B UECda-2010 $B;EMM(B $BBP1~HG!K(B  */
+/*     大貧民サーバー tndhms version 0.32   (2010/11/19)            */
+/*     （第5回 UEC コンピュータ大貧民大会 UECda-2010 仕様 対応版）  */
 /********************************************************************/
 
-$B!}35MW(B
-  $BBh(B5$B2s(B UEC $B%3%s%T%e!<%?BgIOL1Bg2q!J(BUECda-2010$B!K$N;EMM$KBP1~$7$?BgIOL1(B
-$B%5!<%P!<$G$9!#%2!<%`$r9T$J$&$N$K:GDc8BI,MW$J5!G=$O<BAu$5$l$F$$$^$9!#$J(B
-$B$*!"(BUECda-2010$B$N;EMM$O(BUECda-2009,2008,2007$B$N;EMM$HF10l$G$9$N$G!"0JA0$N(B
-$BBg2q$N%/%i%$%"%s%H$bBP@o$5$;$k$3$H$,$G$-$^$9!#(B
-  $B$^$?!"(BUECda-2006 $B$N%W%m%H%3%k$K$bBP1~$7$F$$$^$9!#(BUECda-2007 $B$H(B 
-UECda-2006 $B$N%k!<%k$O!"4pK\E*$KF1$8$G$"$k$?$a!"(BUECda-2007$BMQ%W%m%H%3%k(B
-$B$N%/%i%$%"%s%H$H(B UECda-2006$BMQ%W%m%H%3%k$N%/%i%$%"%s%H$,:.:_$7$F$bBP@o(B
-$B$G$-$^$9!#$?$@$7!"(BUECda-2006$BMQ%/%i%$%"%s%H$O!"%5!<%P!<$HF1$8<oN`$N(BCPU
-$B>e$GF0:n$5$;$F$/$@$5$$!#(B
+◎概要
+  第5回 UEC コンピュータ大貧民大会（UECda-2010）の仕様に対応した大貧民
+サーバーです。ゲームを行なうのに最低限必要な機能は実装されています。な
+お、UECda-2010の仕様はUECda-2009,2008,2007の仕様と同一ですので、以前の
+大会のクライアントも対戦させることができます。
+  また、UECda-2006 のプロトコルにも対応しています。UECda-2007 と 
+UECda-2006 のルールは、基本的に同じであるため、UECda-2007用プロトコル
+のクライアントと UECda-2006用プロトコルのクライアントが混在しても対戦
+できます。ただし、UECda-2006用クライアントは、サーバーと同じ種類のCPU
+上で動作させてください。
 
-$B!}<B9T4D6-(B
-  c $B$N%3%s%Q%$%k4D6-!"JB$S$K(B X11 $B$N3+H/4D6-$H(B libXpm $B$,I,?\$G$9!#>r7o(B
-$B$rK~$?$7$F$$$l$P!"BgDq$N4D6-$GF0$/$H;W$$$^$9!#3+H/C4Ev$N@>Ln8&$G$O!"(B
+◎実行環境
+  c のコンパイル環境、並びに X11 の開発環境と libXpm が必須です。条件
+を満たしていれば、大抵の環境で動くと思います。開発担当の西野研では、
     Solaris 8
-    Solaris 10 $B!J(Bx86 and sparc$B!K(B
+    Solaris 10 （x86 and sparc）
     FreeBSD 6.0
     FreeBSD 6.1
     KNOPPIX 5.0.1
     cygwin
-$B$G%3%s%Q%$%k$,DL$k$3$H$r3NG'$7$F$$$^$9!#(B
+でコンパイルが通ることを確認しています。
 
-$B!}%3%s%Q%$%k$H<B9T$K$D$$$F(B
-  $BIUB0$N(B INSTALL.txt $B$r$4Mw2<$5$$!#(B
+◎コンパイルと実行について
+  付属の INSTALL.txt をご覧下さい。
 
-$B!};HMQJ}K!(B
+◎使用方法
   tndhms [-vh] [-p port_number]
-    -v $B%P!<%8%g%s>pJs$rI=<($7$^$9!#(B
+    -v バージョン情報を表示します。
 
-    -h $B%X%k%W$rI=<($7$^$9!#(B
+    -h ヘルプを表示します。
 
-    -p port_number $BDL?.$K;HMQ$9$k(Bport$BHV9f$r;XDj$7$^$9!#(B
-       $B;XDj$7$J$$$H(B 42485 $B$,;HMQ$5$l$^$9!#(B
+    -p port_number 通信に使用するport番号を指定します。
+       指定しないと 42485 が使用されます。
 
-    -c config file $B$r;XDj$7$^$9!#(B
-       $B;XDj$7$J$$$H<B9T$7$?%G%#%l%/%H%j$K$"$k(B tndhm.cfg $B$,;HMQ$5$l$^$9!#(B
+    -c config file を指定します。
+       指定しないと実行したディレクトリにある tndhm.cfg が使用されます。
 
-$B!}:FG[I[$K4X$7$F(B
-  $B2~JQ$7$?$b$N$rG[I[$9$k$N$O<+M3$G$9$,!"$=$N>l9g!"%*%j%8%J%k$N%Q%C%1!<(B
-$B%8$bIUB0$7$F$/$@$5$$!#$^$?!"2~JQ$7$?$b$N$,%*%j%8%J%k$G$O$J$$$3$H$,$o$+(B
-$B$k$h$&$K$7$F$/$@$5$$!#(B
+◎再配布に関して
+  改変したものを配布するのは自由ですが、その場合、オリジナルのパッケー
+ジも付属してください。また、改変したものがオリジナルではないことがわか
+るようにしてください。
 
-$B!}LH@U(B
-  $BK\%=%U%H%&%'%"$r;HMQ$7$?>e$G@8$8$?$$$+$J$kB;32$K$D$$$F$b!"(BUEC $B%3%s%T%e!<(B
-$B%?BgIOL1Bg2q<B9T0Q0w2q$J$i$S$K@>Ln8&5f<<$O@UG$$rIi$$$^$;$s!#(B
+◎免責
+  本ソフトウェアを使用した上で生じたいかなる損害についても、UEC コンピュー
+タ大貧民大会実行委員会ならびに西野研究室は責任を負いません。
 
-$B!}99?7MzNr(B
-$B!&(B2013/11/20   Ver.0.37
-    $B3WL?;~$N4i2hLL$,$?$^$4$7$+=P$J$$%P%0$r=$@5(B
-$B!&(B2013/11/20   Ver.0.36
-    0.32fc2$BAjEv$N5!G=$rE}9g!#$=$l$KH<$$!"(BHIDDEN_NAME$B%*%W%7%g%s$rDI2C!#(B
-$B!&(B2013/11/19   Ver.0.35
-    $BE}7W>pJs$r%*%W%7%g%s2=(B
-$B!&(B2012/11/01   Ver.0.34
-    $B3WL?;~$N3,CJH=Dj$NITHw$r=$@5(B
-$B!&(B2011/11/01   Ver.0.33
-    $B%8%g!<%+!<8e$N%9%Z(B3$B$N$H$-!"%+!<%IJ];}$r%A%'%C%/$7$J$$%P%0$r=$@5(B
-$B!&(B2010/11/17   Ver.0.32
-    new_alice $B$G!"0lIt$N2hA|$,8E$+$C$?$N$r=$@5!#(B
-$B!&(B2010/11/17   Ver.0.31
-    UECda-2010$BMQ$K8x3+$9$k$?$a!"(BREADME.txt $B$r=q$-49$($?!#(B
-    $B2hLL%b!<%I$K(B new_alise $B$,DI2C$5$l$?!#(B
-$B!&(B2009/10/16   Ver.0.30+
-    UECda-2009$BMQ$K8x3+$9$k$?$a!"(BREADME.txt $B$r=q$-49$($?!#(B
-$B!&(B2008/11/21   Ver.0.30
-    new_normal $B$K2hLL8z2L$r=$@5!#(B
-    UECda-2008$BBg2qEvF|$G;HMQ$7$?%P!<%8%g%s!#(B
-$B!&(B2008/11/21   Ver.0.29
-    new_normal $B$K2hLL8z2L$rDI2C!#(B
-$B!&(B2008/11/21   Ver.0.28
-    $B?7$7$$2hLL%b!<%I(B new_normal $B$rDI2C$7$?!#(B
-    $B%0%i%U$N%b!<%I$,(B2$BDL$j$K$J$C$?!J(Bnew_normal$B$N$_!K!#(B
-$B!&(B2007/11/15   Ver.0.27
-    $B%+!<%I$rG[$k=gHV$r!"@J=g$K9g$o$;$?!#(B
-    $B@JBX$(<BAu;~$KH/@8$7$?!X%+!<%I8r49;~$KDLCN$5$l$k3F<+$,;}$C$F$$$k%+!<(B
-  $B%IKg?t$,4V0c$C$F$$$k!Y%P%0$r=$@5!#(B
-    $B%0%i%U@~2h$N%Y!<%?HG$N%W%m%0%i%`$,%^!<%8$5$l$?!#(B
-$B!&(B2007/11/13   Ver.0.26
-    $B@JBX$($r<BAu$7$?!#(B
-$B!&(B2007/09/15   Ver.0.25
-    2006$BG/EY%W%m%H%3%k$N%P%0$r=$@5!#(B
-    XPM $B%U%!%$%k$N>l=j$r(B config $B%U%!%$%kFb$G;XDj$G$-$k$h$&$K$7$?!#(B
-    tndhm.cfg$B$G;XDj$7$F$$$k(Bport$BHV9f$r!"I8=`%/%i%$%"%s%H$K9g$o$;$?(B    
-    $BMp?t$H$7$F%a%k%;%s%L%D%$%9%?$bMxMQ$G$-$k$h$&$K$7$?(B
-    knoppix$BMQ%P%$%J%j$NF1:-$r$d$a$?!#(B
-$B!&(B2007/08/31   Ver.0.24
-    $B@J49$(0J30$N(B2007$BG/EY$N%W%m%H%3%k$KBP1~$7$?!#(B
-$B!&(B2007/05/20  Ver.0.23
-    config file $B$r;XDj$9$k%*%W%7%g%s$r$D$1$?(B
-    $B%+!<%I8r49$NItJ,$N%k!<%A%s$r%7%s%W%k$K$7$?(B
-    $B2hA|%U%!%$%k$NFI$_9~$_ItJ,$r%7%s%W%k$K$7$?(B
-$B!&(B2007/03/10  Ver.0.22
-    $B?HJ,$N%j%;%C%H$J$7$H$$$&@_Dj$r$G$-$k$h$&$K$7$?(B
-$B!&(B2006/11/29  Ver.0.21
-    $B%+!<%I8r49$r$7$J$$%U%i%0(B RULE_CHANGE $B$rDI2C!#%G%U%)%k%H$O(B YES$B!#(B
-    X$B4X78$NL?Na$r(B external.c $B$+$i(B xdaihu.c $B$KJ,N%$7$?!#(B
-$B!&(B2006/11/18  Ver.0.20
-    $B=i2sJ,$N?HJ,$NDLCN$rJ?L1$K(B
-    $B?HJ,$r%j%;%C%H$9$k5!G=$rDI2C!J(BFLASH_MIBUN_NUMBER$B!K(B
-    $B%+!<%I8r49$N$H$-!"%8%g!<%+!<$^$o$j$N%P%0$r=$@5(B
-    $B?HJ,%j%;%C%H8e$N%+!<%I$rG[$j;O$a$k5/E@$N7hDj$KMp?t$r9_$k$h$&$K!#(B
-    $B%2!<%`=*N;8e$K;_$a$k$h$&$K$7$?(B
-    $B%W%l%$%d!<$NL>A0$,E@LG$9$kLdBj$r2r>C(B
-    $B>l$K%+!<%I$,$J$$$H$-!"%a%C%;!<%8$r=P$k$h$&$K$7$?(B
-    $B%+!<%I8r49Cf$K!"%a%C%;!<%8$,=P$k$h$&$K$7$?(B
-$B!&(B2006/11/16  Ver.0.19
-    WINDOW_TYPE $B$K(B middle_xga $B$rDI2C!#(Bmiddle_extend $B$N(B XGA $BHG!#(B
-    GRAPH_WINDOW $B$N(B yes $B$rGQ;_$7$F!"(Bbig $B$KJQ99!#(B
-    GRAPH_WINDOW $B$K(B middle $B$rDI2C!#(B
-    control_win $B$N;HMQ$rJQ99$7$?!#(B
-    $B%?!<%s$N2s$jJ}$N%k!<%A%sItJ,$r=q$-49$($?!#(B
-$B!&(B2006/11/14  Ver.0.18
-    0.17 $B$K$"$C$?!"%0%i%U$r=P$5$J$$$H!"(BWINDOW $BA4HL$,Mn$A$k%P%0$rD>$7$?!#(B
-    analyze_cards $BFb$G!"(Berror $B$N%U%i%0$rMn$5$J$$$h$&$K$7$?!#(B
-    joker $BC153$G@Z$l$?$H$-!"%+!<%I$,2hLL>e$NFf$N$H$3$m$K=P$k%P%0$r=$@5!#(B
-    $B$7$P$j$N;~$K!"(Bjoker $B$,%9!<%H;XDj$G$J$$$H=P$;$J$$%P%0$r=$@5!#(B
-    $BC153$N(B joker $B$,!"(B8 $B$NBe$j$K$J$k%P%0$r=$@5!#(B
-    $BBgIY9k$,%+!<%I8r49$N;~$K(B joker $B$r(B2$BKg=P$=$&$H$9$k$H$-$K5/$-$k%P%0$r=$@5!#(B
-    WINDOW_TYPE $B$K(B middle_extend $B$rDI2C!#(B
-$B!&(B2006/11/14  Ver.0.17
-    $B%0%i%U$H6&$K!"2a5n(B10$B2s$NJ?6QE@$r=PNO$9$k$h$&$K$7$?!#(B
-    tndhms.cfg $B$G!"%/%i%$%"%s%H$NL>A0$r;XDj$G$-$k$h$&$K$7$?!#(B
-$B!&(B2006/11/14  Ver.0.16
-    $B:#EY$3$=!"(BWINDOW_TYPE $B$K(B MIDDLE $B$,40@.$7$?!J$D$b$j!K!#(B
-$B!&(B2006/11/13  Ver.0.15
-    $B%^%$%J!<%P!<%8%g%s%"%C%W(B
-    $B%=!<%9$r@0M}$7$F!"$9$Y$F$NBg0hJQ?t$r$J$/$7$?!#(B
-$B!&(B2006/11/12  Ver.0.14
-    $B$O$8$a$K%0%i%U$N=D<4$H2#<4$KJ8;z$r=q$/$h$&$K$7$?!#(B
-    WINDOW_TYPE $B$K(B MIDDLE $B$rDI2C$7$?!#(B
-    0.13 $B$GD>$7$?%P%0$N=$@5J}K!$NJQ99!#(B
-$B!&(B2006/11/11  Ver.0.13
-    $B%0%i%U$N=D<4$H2#<4$KJ8;z$r$&$C$?!#(B
-    $B$7$P$i$l$F$$$k$H!"(Bjoker $B$N>e$K%9%Z(B3$B$,=P$J$$%P%0$r=$@5!#(B
-$B!&(B2006/11/10  Ver.0.12
-    cygwin $B$G$b@_Dj%U%!%$%k$rFI$a$k$h$&$K$J$C$?!J2~9T%3!<%I$NDTjm9g$o$;!K(B
-    $B4J0WE*$J%0%i%U$r=q$1$k$h$&$K$7$?!#(B
-$B!&(B2006/11/08  Ver.0.11
-    rule.h $B$rGQ;_!#(B
-    tndhms.cfg $B$rFI$`$h$&$K$J$C$?!#(B
-$B!&(B2006/11/05  Ver.0.10a
-    drop_card_flag $B$N!"(BJoker $B>!<j$K$,L5$/$J$C$F$7$^$&>l9g$,$"$k%P%0$r=$@5!#(B
-    $B$3$N%P%0$O9->>M*2pMM$+$i$4O"MmD:$-$^$7$?!#$"$j$,$H$&$4$6$$$^$7$?!#(B
-$B!&(B2006/11/01  Ver.0.10
-    $B!X@iF|<j$K$J$C$?$H$-!"%i%s%@%`$K=g0L$r7hDj$9$k!Y;EMM$KBP1~!#(B
-    $B;HMQ$9$k(B port $BHV9f$r!"%*%W%7%g%s$G;XDj$G$-$k$h$&$K$7$?!#(B
-$B!&(B2006/10/14  Ver.0.09
-    xmkmf $B;HMQ$G$b%3%s%Q%$%k$G$-$k$h$&$KI|85$7$?!#(B
-    $BBh(B1$B2s(B UEC $B%3%s%T%e!<%?BgIOL1Bg2q(B UECda-2006 $B$N;EMM$KBP1~!#(B
-    $B30It$K%=!<%9$r8x3+!#(B
-$B!&(B2006/10/13  Ver.0.08 
-    backing store $B$,M-8z$G$J$$(B X11 $B$G$b!"$H$j$"$($:F0:n$9$k$h$&$K=$@5!#(B
-$B!&(B2006/07/19  Ver.0.07 
-    $B:GDc8B$N;EMM$,<BAu$5$l$?!#(B
-    $B%*!<%W%s%-%c%s%Q%9MQ%j%j!<%9(B
+◎更新履歴
+・2013/11/20   Ver.0.37
+    革命時の顔画面がたまごしか出ないバグを修正
+・2013/11/20   Ver.0.36
+    0.32fc2相当の機能を統合。それに伴い、HIDDEN_NAMEオプションを追加。
+・2013/11/19   Ver.0.35
+    統計情報をオプション化
+・2012/11/01   Ver.0.34
+    革命時の階段判定の不備を修正
+・2011/11/01   Ver.0.33
+    ジョーカー後のスペ3のとき、カード保持をチェックしないバグを修正
+・2010/11/17   Ver.0.32
+    new_alice で、一部の画像が古かったのを修正。
+・2010/11/17   Ver.0.31
+    UECda-2010用に公開するため、README.txt を書き換えた。
+    画面モードに new_alise が追加された。
+・2009/10/16   Ver.0.30+
+    UECda-2009用に公開するため、README.txt を書き換えた。
+・2008/11/21   Ver.0.30
+    new_normal に画面効果を修正。
+    UECda-2008大会当日で使用したバージョン。
+・2008/11/21   Ver.0.29
+    new_normal に画面効果を追加。
+・2008/11/21   Ver.0.28
+    新しい画面モード new_normal を追加した。
+    グラフのモードが2通りになった（new_normalのみ）。
+・2007/11/15   Ver.0.27
+    カードを配る順番を、席順に合わせた。
+    席替え実装時に発生した『カード交換時に通知される各自が持っているカー
+  ド枚数が間違っている』バグを修正。
+    グラフ線画のベータ版のプログラムがマージされた。
+・2007/11/13   Ver.0.26
+    席替えを実装した。
+・2007/09/15   Ver.0.25
+    2006年度プロトコルのバグを修正。
+    XPM ファイルの場所を config ファイル内で指定できるようにした。
+    tndhm.cfgで指定しているport番号を、標準クライアントに合わせた    
+    乱数としてメルセンヌツイスタも利用できるようにした
+    knoppix用バイナリの同梱をやめた。
+・2007/08/31   Ver.0.24
+    席換え以外の2007年度のプロトコルに対応した。
+・2007/05/20  Ver.0.23
+    config file を指定するオプションをつけた
+    カード交換の部分のルーチンをシンプルにした
+    画像ファイルの読み込み部分をシンプルにした
+・2007/03/10  Ver.0.22
+    身分のリセットなしという設定をできるようにした
+・2006/11/29  Ver.0.21
+    カード交換をしないフラグ RULE_CHANGE を追加。デフォルトは YES。
+    X関係の命令を external.c から xdaihu.c に分離した。
+・2006/11/18  Ver.0.20
+    初回分の身分の通知を平民に
+    身分をリセットする機能を追加（FLASH_MIBUN_NUMBER）
+    カード交換のとき、ジョーカーまわりのバグを修正
+    身分リセット後のカードを配り始める起点の決定に乱数を降るように。
+    ゲーム終了後に止めるようにした
+    プレイヤーの名前が点滅する問題を解消
+    場にカードがないとき、メッセージを出るようにした
+    カード交換中に、メッセージが出るようにした
+・2006/11/16  Ver.0.19
+    WINDOW_TYPE に middle_xga を追加。middle_extend の XGA 版。
+    GRAPH_WINDOW の yes を廃止して、big に変更。
+    GRAPH_WINDOW に middle を追加。
+    control_win の使用を変更した。
+    ターンの回り方のルーチン部分を書き換えた。
+・2006/11/14  Ver.0.18
+    0.17 にあった、グラフを出さないと、WINDOW 全般が落ちるバグを直した。
+    analyze_cards 内で、error のフラグを落さないようにした。
+    joker 単騎で切れたとき、カードが画面上の謎のところに出るバグを修正。
+    しばりの時に、joker がスート指定でないと出せないバグを修正。
+    単騎の joker が、8 の代りになるバグを修正。
+    大富豪がカード交換の時に joker を2枚出そうとするときに起きるバグを修正。
+    WINDOW_TYPE に middle_extend を追加。
+・2006/11/14  Ver.0.17
+    グラフと共に、過去10回の平均点を出力するようにした。
+    tndhms.cfg で、クライアントの名前を指定できるようにした。
+・2006/11/14  Ver.0.16
+    今度こそ、WINDOW_TYPE に MIDDLE が完成した（つもり）。
+・2006/11/13  Ver.0.15
+    マイナーバージョンアップ
+    ソースを整理して、すべての大域変数をなくした。
+・2006/11/12  Ver.0.14
+    はじめにグラフの縦軸と横軸に文字を書くようにした。
+    WINDOW_TYPE に MIDDLE を追加した。
+    0.13 で直したバグの修正方法の変更。
+・2006/11/11  Ver.0.13
+    グラフの縦軸と横軸に文字をうった。
+    しばられていると、joker の上にスペ3が出ないバグを修正。
+・2006/11/10  Ver.0.12
+    cygwin でも設定ファイルを読めるようになった（改行コードの辻褄合わせ）
+    簡易的なグラフを書けるようにした。
+・2006/11/08  Ver.0.11
+    rule.h を廃止。
+    tndhms.cfg を読むようになった。
+・2006/11/05  Ver.0.10a
+    drop_card_flag の、Joker 勝手にが無くなってしまう場合があるバグを修正。
+    このバグは広松悠介様からご連絡頂きました。ありがとうございました。
+・2006/11/01  Ver.0.10
+    『千日手になったとき、ランダムに順位を決定する』仕様に対応。
+    使用する port 番号を、オプションで指定できるようにした。
+・2006/10/14  Ver.0.09
+    xmkmf 使用でもコンパイルできるように復元した。
+    第1回 UEC コンピュータ大貧民大会 UECda-2006 の仕様に対応。
+    外部にソースを公開。
+・2006/10/13  Ver.0.08 
+    backing store が有効でない X11 でも、とりあえず動作するように修正。
+・2006/07/19  Ver.0.07 
+    最低限の仕様が実装された。
+    オープンキャンパス用リリース

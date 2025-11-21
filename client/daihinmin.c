@@ -1240,7 +1240,7 @@ int getLastPlayerNum(int ba_cards[8][15])
 	static int last_player_num = -1;
 
 	if (g_logging == 1)
-	{ // ���O�̕\��
+	{ // デバッグ出力
 		printf("Now state \n");
 		showState(&state);
 		printf(" Last state \n");

@@ -2,99 +2,99 @@
             "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="ja">
 <HEAD>
- <meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
  <META http-equiv="Content-Style-Type" content="text/css">
  <LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp"> 
  <LINK rel="INDEX" href="./index.html">
  <link href="ver01.css" rel="stylesheet" type="text/css"> 
- <TITLE>���饤����Ȥβ��ɡ�����ѥ��롢�¹ԡ�C�����ǡ�</TITLE>
+ <TITLE>クライアントの改良、コンパイル、実行（C言語版）</TITLE>
 </HEAD>
 <BODY>
 <p>
 
-<a href="c-pref.html">[���Υڡ���]</a>
-<a href="manual.html">[�ܼ�]</a>
-<a href="c-client.html">[���Υڡ���]</a>
+<a href="c-pref.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="c-client.html">[次のページ]</a>
 </p>
 <hr>
 
-<h1>6. ���饤����Ȥβ��ɡ�����ѥ��롢�¹ԡ�C�����ǡ�</h1>
+<h1>6. クライアントの改良、コンパイル、実行（C言語版）</h1>
 <div class="text">
 <p>
-���ۤ���Ƥ��볫ȯ���åȤˤϥ��饤����ȥ��եȥ������Υ����������ɤ��ޤޤ�Ƥ��ޤ��������������ɤ򥳥�ѥ��뤹�뤳�Ȥǡ��Ϥ���ƥ��饤����ȥ��եȥ�������ư����뤳�Ȥ��Ǥ���褦�ˤʤ�ޤ���
+配布されている開発キットにはクライアントソフトウェアのソースコードが含まれています。ソースコードをコンパイルすることで、はじめてクライアントソフトウェアを動作させることができるようになります。
 </p>
 <p>
-���ξϤǤϡ���Ȥ���C�ǤΥ��饤����ȥ��եȥ������Υ����������ɤ���ɤ�����ˡ���������ޤ����ޤ��������������ɤ򥳥�ѥ��뤹����ˡ�ȡ������Ф�ư����ư������å���Ԥ���ˡ�ˤĤ����������ޤ���JAVA�Ǥ˴ؤ��Ƥ��̻�򻲾Ȥ���������
-</p>
-</div>
-
-<hr class="middle">
-<h2>6.1 ���ɤν���</h2>
-<div class="text">
-<p>
-�ºݤβ��ɤ�����äơ������ν�����Ȥ�ɬ�פˤʤ�ޤ���cygwin ��Ȥ����ȡ�knoppix ��Ȥ����Ϥ�����ξ������Ω�ĤϤ��Ǥ�������ʳ��δĶ��ξ��ϡ���ȯ���åȤ���°�Υɥ�����Ȥ򤴻��Ȥ���������
+この章では、例としてC版のクライアントソフトウェアのソースコードを改良する方法を説明します。また、ソースコードをコンパイルする方法と、サーバを起動して動作チェックを行う方法について説明します。JAVA版に関しては別紙を参照ください。
 </p>
 </div>
 
 <hr class="middle">
-<h3>6.1.1 cygwin �ξ��</h3>
+<h2>6.1 改良の準備</h2>
 <div class="text">
 <p>
-
-cygwin �ξ��ϴ���Ū�ʽ����ϴ�λ���Ƥ��ޤ������饤����ȡ��ץ������Υ����������ɤ��Խ����뤿��ˤ�Ŭ���ʥƥ����ȥ��ǥ�����ɬ�פʤΤǡ���������ʪ���Ѱդ��Ƥ����Ƥ����������⤷���줫��ƥ����ȥ��ǥ������Ѱդ���ʤ顢terapad ����������Ǥ���̵���ǻ��Ѥ��뤳�Ȥ��Ǥ��ޤ���������ˡ�ϸ������󥸥�Ǹ�������С����������۸������Ȥ��ߤĤ���ޤ���
+実際の改良に先だって、少々の準備作業が必要になります。cygwin を使う場合と、knoppix を使う場合はこの節の情報が役に立つはずです。それ以外の環境の場合は、開発キットに付属のドキュメントをご参照ください。
 </p>
 </div>
 
 <hr class="middle">
-<h3>6.1.2 knoppix �ξ��</h3>
+<h3>6.1.1 cygwin の場合</h3>
 <div class="text">
 <p>
-knoppix �ξ��ϥǡ�������¸��USB �������Ѥ���ΤǾ��������˼�ּ��ޤ����ʲ��ι��ܤ��ɤ��ɤ�Ǻ�Ȥ�ʤ�Ƥ���������
+
+cygwin の場合は基本的な準備は完了しています。クライアント・プログラムのソースコードを編集するためには適当なテキストエディタが必要なので、お好きな物を用意しておいてください。もしこれからテキストエディタを用意するなら、terapad がおすすめです。無料で使用することができます。入手方法は検索エンジンで検索すれば、すぐに配布元サイトがみつかります。
+</p>
+</div>
+
+<hr class="middle">
+<h3>6.1.2 knoppix の場合</h3>
+<div class="text">
+<p>
+knoppix の場合はデータの保存にUSB メモリを使用するので少々準備に手間取ります。以下の項目を良く読んで作業を進めてください。
 </p>
 </div>
 
 <div class="text">
 <hr class="middle">
-<h4>USB ����ν���</h4>
+<h4>USB メモリの準備</h4>
 
 <div class="text">
 <p>
-knoppix ��DVD ����ѥ����󤬵�ư�����顢USB �ݡ��Ȥ���5 �Ϥǽ�������USB �����ɤ��Ƥ����������ǥ����ȥå׾�˿�6.1 �Τ褦�ʥ�������ɽ�������Τǡ�������å����ơ֥ץ��ѥƥ��פ����򤷤Ƥ���������
+knoppix のDVD からパソコンが起動したら、USB ポートに第5 章で準備したUSB メモリを刺してください。デスクトップ上に図6.1 のようなアイコンが表示されるので、右クリックして「プロパティ」を選択してください。
 </p>
 
 <p class="figure">
-<img src="img/comp01.png" width=215 height=184 alt="USB�����ѥ�����˻ؤ��ȡ��������󤬽ФƤ��ޤ���"><br>
-��6.1 �� USB�����ѥ�����˻ؤ��ȡ��������󤬽ФƤ��ޤ�<br>
+<img src="img/comp01.png" width=215 height=184 alt="USBメモリをパソコンに指すと、アイコンが出てきます。"><br>
+図6.1 ： USBメモリをパソコンに指すと、アイコンが出てきます<br>
 </p>
 
 <p>
-����ȥǥХ��������ꥦ����ɥ���ɽ������ޤ����֥ǥХ����ץ��֤򥯥�å��������ɤ߼�����ѡפΥ����å���Ϥ����ơ�OK�פ򥯥�å����ޤ��礦�ʿ�6.2���ȡˡ�
+するとデバイスの設定ウインドウが表示されます。「デバイス」タブをクリックし、「読み取り専用」のチェックをはずして「OK」をクリックしましょう（図6.2参照）。
 </p>
 
 
 <p class="figure">
 
-<img src="img/comp02.png" width=427 height=480 alt="USB����Υޥ���ȡ�"><br>
-��6.2 �� knoppix �� USB�����ޥ���Ȥ��ޤ�<br>
+<img src="img/comp02.png" width=427 height=480 alt="USBメモリのマウント。"><br>
+図6.2 ： knoppix で USBメモリをマウントします<br>
 </p>
 
 <p>
-��λ������Ʊ�����������Ƥӱ�����å������֥ޥ���ȡפ򥯥�å����Ƥ��������������USB ����ν����ϴ�λ�Ǥ���
+完了したら同じアイコンを再び右クリックし、「マウント」をクリックしてください。これでUSB メモリの準備は完了です。
 </p>
 </div>
 
 <hr class="middle">
-<h4>��ȯ���åȤβ���</h4>
+<h4>開発キットの解凍</h4>
 <div class="text">
 <p>
-���̲���ɽ������Ƥ���С��ΰ��ֺ����Ѱդ��줿KDE �ܥ��󡢥����ƥࡢ�����ߥʥ�ν��֤ǥ���å����Ƥ����ȡ����󥽡��뤬��ư���ޤ���knoppix �����ϴ���Ū�˥����ߥʥ��Ȥ��Τ������Ǥ���
+画面下に表示されているバーの一番左に用意されたKDE ボタン、システム、ターミナルの順番でクリックしていくと、コンソールが起動します。knoppix の操作は基本的にターミナルを使うのが便利です。
 </p>
 
 <p>
-�����ߥʥ뤬�������顢USB ������γ�ȯ���åȤ���ष�ޤ��礦������Ū��USB ����Υ롼�Ȥ�/media/sda1 �Ǥ�������ˤ�tar ���ޥ�ɤ�Ȥ��ޤ������ޥ�ɥ饤�󥪥ץ����Ȥ���xvzf ��Ϳ���Ƥ����ޤ��礦��
+ターミナルが開いたら、USB メモリ内の開発キットを解凍しましょう。一般的にUSB メモリのルートは/media/sda1 です。解凍にはtar コマンドを使います。コマンドラインオプションとしてxvzf を与えておきましょう。
 </p>
 <p>
-���Ϥ��륳�ޥ�ɤ�ޤȤ��ȼ��Τ褦�ˤʤ�ޤ��ʥե�����̾��20061018 ����ʬ�ϳ�ȯ���åȤΥС����������ޤ�������20061020 �ǤǤ���С�����ܤ�20061018 ����ʬ��20061020 ���ѹ����Ƥ��������ˡ�
+入力するコマンドをまとめると次のようになります（ファイル名の20061018 の部分は開発キットのバージョンが入ります。仮に20061020 版であれば、二行目の20061018 の部分を20061020 に変更してください）。
 </p>
 <div class="indent">
 <div class="comm">
@@ -106,45 +106,45 @@ $ tar xzvf tndhm_devkit20061018.tar.gz
 </div>
 
 <p>
-���ʤߤˡ���Υ��ޥ�ɤǤ�$�����Ϥ���ɬ�פϤ���ޤ���Τ����դ��Ƥ������������ब��λ�����daihinmin �Ȥ����ǥ��쥯�ȥ꤬����夬��Ϥ��Ǥ���
+ちなみに、上のコマンドでは$を入力する必要はありませんので注意してください。解凍が完了するとdaihinmin というディレクトリが出来上がるはずです。
 </p>
 </div>
 </div>
 
 <hr class="middle">
 
-<h2>6.2 ���饤����Ȥβ���</h2>
+<h2>6.2 クライアントの改良</h2>
 <div class="text">
 <p>
-������Ǥϥ��饤����ȡ��ץ������β�����ˡ�ˤĤ��Ʋ��⤷�ޤ��������ޤǤ⡢�ɤΤ褦����ˡ�ǥ����������ɤ�񤭴�����Ф褤����������������Ǥ����Ĥޤꡢ���ɤ����ˤˤĤ��ƤϿ���ޤ���
+この節ではクライアント・プログラムの改良方法について解説します。あくまでも、どのような方法でソースコードを書き換えればよいかを説明するだけです。つまり、改良の方針については触れません。
 </p>
 </div>
 
 <hr class="middle">
-<h3>6.2.1 Cygwin ��Ȥ����</h3>
+<h3>6.2.1 Cygwin を使う場合</h3>
 <div class="text">
 <p>
-��5 �Ϥǥ��ԡ�����daihinmin �Ȥ����ե�������client �Ȥ����ե�����򳫤��Ƥ��������������client.c �Ȥ����ե����뤬¸�ߤ��Ƥ���Ϥ��Ǥ������Υե�����򤪹��ߤΥƥ����ȥ��ǥ����ǳ����С������˼�ʬ�Υ����ǥ��򥯥饤����ȡ��ץ�������������ळ�Ȥ��ʥ��饤����ȡ��ץ������β��ɤ˼��ݤ��뤳�Ȥ��ˤǤ��ޤ��ʿ�6.3���ȡ�</p>
+第5 章でコピーしたdaihinmin というフォルダ内のclient というフォルダを開いてください。するとclient.c というファイルが存在しているはずです。このファイルをお好みのテキストエディタで開けば、すぐに自分のアイデアをクライアント・プログラムに盛り込むことが（クライアント・プログラムの改良に取り掛かることが）できます（図6.3参照）</p>
 <p class="figure">
-<A HREF="img/comp03.png"><img src="img/comp03_s.png" width=354 height=279 alt="client.c �򥨥ǥ����ǳ������ͻ�"></A><br>
+<A HREF="img/comp03.png"><img src="img/comp03_s.png" width=354 height=279 alt="client.c をエディタで開いた様子"></A><br>
 
-��6.3 �� client.c �������������ɤǤ���Ŭ���ʥ��ǥ������Խ����Ƥ�������<br>
-�ʲ����򥯥�å����礭���ޡ�
+図6.3 ： client.c がソースコードです。適当なエディタで編集してください<br>
+（画像をクリックで大きい図）
 </p>
 <p>
-����Ū�ˤɤΥե����뤬�ɤε�ǽ��ô�����Ƥ��뤫�ˤĤ��Ƥϡ�client �ե������Ʊ�����줿�ɥ�����Ȥ䡢�ܥޥ˥奢�����9 �Ϥ�������������
+具体的にどのファイルがどの機能を担当しているかについては、client フォルダに同封されたドキュメントや、本マニュアルの第9 章をご覧ください。
 </p>
 </div>
 
 <hr class="middle">
-<h3>6.2.2 knoppix ��Ȥ����</h3>
+<h3>6.2.2 knoppix を使う場合</h3>
 <div class="text">
 <p>
-��ۤ�ɽ�������������ߥʥ��Ȥäơ����饤����ȡ��ץ������Υ����������ɤ���¸���줿�ǥ��쥯�ȥ�˰�ư���ޤ��礦������fUSB����Υ롼�ȥǥ��쥯�ȥ�g/daihinmin/client/�ʲ��ˤ���ޤ������Υǥ��쥯�ȥ����ˤ��륽���������ɤ��Խ�����С����饤����ȡ��ץ������β��ɤ�Ԥ����Ȥ��Ǥ��ޤ����Խ��˻Ȥ����ޥ�ɡʥ��ǥ����� ��emacs�������Ǥ���
+先ほど表示させたターミナルを使って、クライアント・プログラムのソースコードが保存されたディレクトリに移動しましょう。場所はfUSBメモリのルートディレクトリg/daihinmin/client/以下にあります。このディレクトリの中にあるソースコードを編集すれば、クライアント・プログラムの改良を行うことができます。編集に使うコマンド（エディタ） はemacsが便利です。
 </p>
 <p>
 
-�����ߥʥ�����Ϥ��륳�ޥ�ɤϼ��Τ褦�ˤʤ�ޤ���
+ターミナルに入力するコマンドは次のようになります。
 </p>
 <div class="indent">
 <div class="comm">
@@ -155,20 +155,20 @@ $ emacs client.c &amp;
 </div>
 </div>
 <p>
-���ʤߤˡ���Υ��ޥ�ɤǤ�$�����Ϥ���ɬ�פϤ���ޤ���Τ����դ��Ƥ���������emacs ��Ĥ��äơ���ȯ���åȤ�Ʊ�����줿���饤����ȡ��ץ�������ɤ�ɤ���ɤ��Ƥ���������
+ちなみに、上のコマンドでは$を入力する必要はありませんので注意してください。emacs をつかって、開発キットに同梱されたクライアント・プログラムをどんどん改良してください。
 </p>
 <p>
-emacs �λȤ����ϡ�web ��ˤ�������Υɥ�����Ȥ�����ޤ����������󥸥�ǡ�emacs �Ȥ����פʤɤȸ������ƤߤƤ���������
+emacs の使い方は、web 上にたくさんのドキュメントがあります。検索エンジンで「emacs 使い方」などと検索してみてください。
 </p>
 </div>
 
 <hr class="middle">
-<h2>6.3 ���饤����ȥ��եȥ������Υ���ѥ���</h2>
+<h2>6.3 クライアントソフトウェアのコンパイル</h2>
 
 <div class="text">
-<p>���Υե����뤬 client/ ��ˤ��뤳�Ȥ��ǧ���Ƥ����������ʤ��Ȥ��ϥ���
- ������ɤ䰵�̥ե�����β�����Ԥ��Ƥ����ǽ��������Τǡ���Ȥ��
- ��ľ���Ƥ���������
+<p>次のファイルが client/ 内にあることを確認してください。ないときはダウ
+ ンロードや圧縮ファイルの解凍を失敗している可能性があるので、作業をや
+ り直してください。
 </p>
 <div class="indent">
 <div class="comm">
@@ -181,8 +181,8 @@ configure*      daihinmin.c
 </div>
 
 <p>
- ���󥽡����� client/ �˰�ư�������Υ��ޥ�ɤ�¹Ԥ���ȥ��饤�����
- �ץ�����ब����ѥ��뤵��ޤ���
+ コンソール上で client/ に移動し、次のコマンドを実行するとクライアント
+ プログラムがコンパイルされます。
 </p>
 <div class="indent">
 <div class="comm">
@@ -193,11 +193,11 @@ $ make
 </div>
 </div>
 <p>
- ����:$�ϥ��ޥ�ɥץ���ץȤ��̣���Ƥ��ޤ��Τǡ�$ �����Ϥ��ʤ��Ǥ���������
+ 注意:$はコマンドプロンプトを意味していますので、$ は入力しないでください。
 </p>
 <p>
- ����ѥ��뤬����˽�λ����ȡ������˼��Υե����뤬��������ޤ���
- client��cygwin �ξ��� client.exe)���¹ԥե�����Ǥ���
+ コンパイルが正常に終了すると、新たに次のファイルが生成されます。
+ client（cygwin の場合は client.exe)が実行ファイルです。
 </p>
 <div class="indent">
 <div class="comm">
@@ -207,7 +207,7 @@ client       client.o     connection.o  daihinmin.o
 </div>
 </div>
 <p>
- ���顼���Ǥ��Ȥ��ϡ�����ѥ���˼��Ԥ��Ƥ���Τǡ����Τ��Ȥ��Ƥ���������
+ エラーがでたときは、コンパイルに失敗しているので、次のことを試してください。
 </p>
 <div class="indent">
 <div class="comm">
@@ -218,39 +218,39 @@ $ make
 </div>
 </div>
 <p>
- �������ե��������Ѥ������ϡ�
+ ソースファイルを改変した場合は、
 </p>
        $ make
 <p> 
-���ǤƤХ���ѥ��뤬����ޤ���
+と打てばコンパイルがされます。
 </p>
 </div>
 
 <hr class="middle">
-<h2>6.4 ���饤����ȥ��եȥ�������ư������å�</h2>
+<h2>6.4 クライアントソフトウェアの動作チェック</h2>
 
 <div class="text">
 <p>
-knoppix ��ȤäƳ�ȯ������ϵ���Ĥ��Ƥ�������������������ޤ���knoppix �ˤ�CD �Ǥ�DVD �Ǥ�����ޤ�������ȯ�Ķ����Թ��DVD�Ǥ�Ȥ��ޤ������Ȥ��Υѥ������DVD��񤭹���ʤ����Ϥ�Ϣ������������Ϣ�����<img src="img/dhm.png" alt="daihinmin" width=78 height=17> <img src="img/ice.png" alt="@ice.uec.ac.jp" width=120 height=17> �Ǥ���CD �Ǥ�ư����뤿���ɬ�פʥե�����������򤵤��Ƥ��������ޤ���
+knoppix を使って開発する場合は気をつけていただきたい点があります。knoppix にはCD 版とDVD 版がありますが、開発環境の都合上DVD版を使います。お使いのパソコンでDVDを書き込めない場合はご連絡ください。連絡先は<img src="img/dhm.png" alt="daihinmin" width=78 height=17> <img src="img/ice.png" alt="@ice.uec.ac.jp" width=120 height=17> です。CD 版で動作させるために必要なファイルと説明をさせていただきます。
 </p>
 <p>
-ư������å���Ԥ��ˤϡ������С����ץ���������Ѥ���ɬ�פ�����ޤ����ºݤ��̿��򤪤��ʤ碌�ơ�ư����ǧ����ɬ�פ����뤫��Ǥ���
+動作チェックを行うには、サーバー・プログラムを使用する必要があります。実際に通信をおこなわせて、動作を確認する必要があるからです。
 
 </p>
 </div>
 
 <hr class="middle">
-<h3>6.4.1 ������cygwin �ξ���</h3>
+<h3>6.4.1 準備（cygwin の場合）</h3>
 <div class="text">
 <p>
-ư������å���Ԥ����ˡ������С����ץ������Υ���ѥ����Ԥ�ɬ�פ�����ޤ��������С����ץ������Υ���ѥ����Ԥ��ˤϡ�Cygwin �򥤥󥹥ȡ��뤷���Ȥ��˥ǥ����ȥå׾�˺������줿��6.4 �Υ����������֥륯��å����Ƥ���������
+動作チェックを行う前に、サーバー・プログラムのコンパイルを行う必要があります。サーバー・プログラムのコンパイルを行うには、Cygwin をインストールしたときにデスクトップ上に作成された図6.4 のアイコンをダブルクリックしてください。
 </p>
 <p class="figure">
-<img src="img/comp04.png" width=157 height=127 alt="cygwin �Υ�������"><br>
-��6.4 �� cygwin �Υ����������֥륯��å����Ʋ�����<br>
+<img src="img/comp04.png" width=157 height=127 alt="cygwin のアイコン"><br>
+図6.4 ： cygwin のアイコンをダブルクリックして下さい<br>
 </p>
 <p>
-����ȥ��ޥ�ɥ饤��ץ���ץȤ�ɽ������ޤ��Τǡ��ʲ��Τ褦�����Ϥ��Ƥ���������</p>
+するとコマンドラインプロンプトが表示されますので、以下のように入力してください。</p>
 
 <div class="indent">
 <div class="comm">
@@ -265,15 +265,15 @@ $ make
 </div>
 
 <p>
-����ǤȤꤢ�����ν����ϴ�λ�Ǥ���
+これでとりあえずの準備は完了です。
 </p>
 </div>
 
 <hr class="middle">
-<h3>6.4.2 ������knoppix �ξ���</h3>
+<h3>6.4.2 準備（knoppix の場合）</h3>
 <div class="text">
 <p>
-�����С����եȥ�������Ϥ���Ƽ¹Ԥ���Ȥ��ϡ����饤����ȥ��եȥ�������Ʊ�ͤ˥���ѥ����Ԥ�ɬ�פ�����ޤ��������С����եȥ������Υ���ѥ���ϼ��Υ��ޥ�ɤ�¹Ԥ����OK�Ǥ���
+サーバーソフトウェアをはじめて実行するときは、クライアントソフトウェアと同様にコンパイルを行う必要があります。サーバーソフトウェアのコンパイルは次のコマンドを実行すればOKです。
 </p>
 
 <div class="indent">
@@ -288,23 +288,23 @@ $ make
 </div>
 
 <p>
-���ޥ�ɤ����Ϥ���Ȥ���$�����Ϥ���ɬ�פϤ���ޤ����ä�����ʤ�����ѥ��뤬��λ����Ϥ��Ǥ������ʤˤ����顼���Ф����� <img src="img/dhm.png" alt="daihinmin" width=78 height=17> <img src="img/ice.png" alt="@ice.uec.ac.jp" width=120 height=17> �ޤǥ᡼��Ǥ��䤤��碌����������
+コマンドを入力するときは$を入力する必要はありません。特に問題なくコンパイルが完了するはずですが、なにかエラーが出た場合は <img src="img/dhm.png" alt="daihinmin" width=78 height=17> <img src="img/ice.png" alt="@ice.uec.ac.jp" width=120 height=17> までメールでお問い合わせください。
 </p>
 <p>
-�����С����եȥ������ν����ˤĤ��Ƥξܤ�������ϡ�INSTALL.txt���ɤߤ����������ܤ������⤬��������Ƥ��ޤ���
+サーバーソフトウェアの準備についての詳しい情報は、INSTALL.txtをお読みください。詳しい解説が準備されています。
 </p>
 </div>
 
 <hr class="middle">
 
-<h3>6.4.3 �����С��μ¹�</h3>
+<h3>6.4.3 サーバーの実行</h3>
 <div class="text">
 
 <hr class="middle">
-<h4>Cygwin �ξ��</h4>
+<h4>Cygwin の場合</h4>
 <div class="text">
 <p>
-��ۤɤ�Ʊ�ͤˡ��ǥ����ȥå׾�� cygwin.exe �Ȥ��������������֥륯��å����ƥ��ޥ�ɥ饤��ץ���ץȤ�ư���Ƥ��������������Ǽ��Υ��ޥ�ɤ����Ϥ��ޤ���
+先ほどと同様に、デスクトップ上の cygwin.exe というアイコンをダブルクリックしてコマンドラインプロンプトを起動してください。ここで次のコマンドを入力します。
 </p>
 <div class="indent">
 <div class="comm">
@@ -314,17 +314,17 @@ $ startxwin.sh
 </div>
 </div>
 <p>
-����ȿ�6.5 �Τ褦�ʥ��ޥ�ɥ饤��ץ���ץȤ�ɽ�������Ϥ��Ǥ���
+すると図6.5 のようなコマンドラインプロンプトが表示されるはずです。
 
 </p>
 <p class="figure">
-<A HREF="img/comp05.png"><img src="img/comp05_s.png" width=327 height=241 alt="cygwin �Υ��ޥ�ɥץ����"></A><br>
-��6.5 �� cygwin �Υ��ޥ�ɥץ����<br>
-�ʲ����򥯥�å����礭���ޡ�
+<A HREF="img/comp05.png"><img src="img/comp05_s.png" width=327 height=241 alt="cygwin のコマンドプロント"></A><br>
+図6.5 ： cygwin のコマンドプロント<br>
+（画像をクリックで大きい図）
 </p>
 
 <p>
-�Хå����饦��ɥ��顼����Υ��ޥ�ɥ饤��ץ���ץȤ���ư�����顢�ʲ��Υ��ޥ�ɤ����Ϥ��Ƥ���������
+バックグラウンドカラーが白のコマンドラインプロンプトが起動したら、以下のコマンドを入力してください。
 </p>
 
 <div class="indent">
@@ -337,15 +337,15 @@ $ ./tndhms.exe &amp;
 </div>
 
 <p>
-����ǥ����С����ץ������ε�ư�ϴ�λ�Ǥ����ܤ����Ȥ����ˤĤ��Ƥ��� 8 �Ϥ��ɤߤ���������
+これでサーバー・プログラムの起動は完了です。詳しい使い方については第 8 章をお読みください。
 </p>
 </div>
 
 <hr class="middle">
-<h4>knoppix �ξ��</h4>
+<h4>knoppix の場合</h4>
 <div class="text">
 <p>
-�����ߥʥ�˰ʲ��Υ��ޥ�ɤ�¹Ԥ���ȥ����С����ץ�����ब��ư���ޤ���
+ターミナルに以下のコマンドを実行するとサーバー・プログラムが起動します。
 </p>
 <div class="indent">
 <div class="comm">
@@ -357,41 +357,41 @@ $ ./tndhms &amp;
 </div>
 
 <p>
-�����С����ץ������λȤ����Ϥ��Υޥ˥奢��� 8 �Ϥ˽񤤤Ƥ���ޤ��Τǡ����Ҥ��ɤߤ���������
+サーバー・プログラムの使い方はこのマニュアルの 8 章に書いてありますので、ぜひお読みください。
 </p>
 
 </div>
 </div>
 
 <hr class="middle">
-<h2>6.5 ���饤����Ȥμ¹�</h2>
+<h2>6.5 クライアントの実行</h2>
 <div class="text">
 <p>
- ����ѥ��뤷�ƤǤ��� client ���뤤�� client.exe ���¹ԥե�����Ǥ���
- ���μ¹ԥե�����ϼ��Τ褦�ʷ����Ǽ¹ԤǤ��ޤ���
+ コンパイルしてできた client あるいは client.exe が実行ファイルです。
+ この実行ファイルは次のような形式で実行できます。
 </p>
 <div class="indent">
 <div class="comm">
 <pre>
        $ ./client [-h server_adress] [-p port] [-n user_name]
 
- -h server_adress : �����Ф���ư���Ƥ��륳��ԥ塼����IP���ɥ쥹(IPv4)����ꤷ�ޤ���
-                    ��ά����� 127.0.0.1 �����ꤵ��ޤ���
+ -h server_adress : サーバが起動しているコンピュータのIPアドレス(IPv4)を指定します。
+                    省略すると 127.0.0.1 が指定されます。
 
- -p port          : �����Ф���³����������Ƥ���ݡ����ֹ����ꤷ�ޤ���
-                    ��ά����� 42485 �����ꤵ��ޤ���
+ -p port          : サーバが接続を持ち受けているポート番号を指定します。
+                    省略すると 42485 が指定されます。
 
- -n user_name     : �����Ф����Τ��륯�饤�����̾����ꤷ�ޤ���
-                    Ⱦ�ѱѿ����Τ߻��Ѳ�ǽ�ǡ�15ʸ���ޤ��������ޤ�����
-                    ������¦��ɽ�������Τ�8�����٤ˤʤ�ޤ���
-                    ��ά����ȡ�default �����ꤵ��ޤ���
+ -n user_name     : サーバに通知するクライアント名を指定します。
+                    半角英数字のみ使用可能で、15文字まで送信しますが、
+                    サーバ側で表示されるのは8字程度になります。
+                    省略すると、default が指定されます。
 </pre>
 </div>
 </div>
 
 <p>
- ���Ȥ��С������Ф�Ʊ������ԥ塼����42485�ݡ��Ȥ��Ԥ������Ƥ���Ȥ��ˡ�
- ���饤�����̾�� default �Ȥ����硢���Τ褦�˼¹Ԥ��ޤ���
+ たとえば、サーバが同じコンピュータの42485ポートで待ち受けているときに、
+ クライアント名と default とする場合、次のように実行します。
 </p>
 <div class="indent">
 <div class="comm">
@@ -401,7 +401,7 @@ $ ./client -h 127.0.0.1 -p 42485 -n default
 </div>
 </div>
 <p>
- ����ϼ����ͤ˾�ά��������Ʊ������Ȥʤ�ޤ���
+ これは次の様に省略した場合と同じ設定となります。
 </p>
 <div class="indent">
 <div class="comm">
@@ -412,8 +412,8 @@ $ ./client
 </div>
 
 <p>
- �ޤ��������Τ褦��Ǥ�դΤ�Τ������ꤹ�뤳�Ȥ�Ǥ��ޤ���
- ������ϥ��饤�����̾�� client01 �Ȼ��ꤷ�Ƥ��ޤ���
+ また、下記のように任意のものだけ指定することもできます。
+ この例はクライアント名を client01 と指定しています。
 </p>
 <div class="indent">
 <div class="comm">
@@ -423,7 +423,7 @@ $ ./client -n client01
 </div>
 </div>
 <p>
- ���饤����Ȥ�5��Ʊ���˵�ư�����硢
+ クライアントを5つ同時に起動する場合、
 </p>
 <div class="indent">
 <div class="comm">
@@ -433,40 +433,40 @@ $ ./client &amp;
 </div>
 </div>
 <p>
- �Τ褦�˺Ǹ��&amp;(����ѥ����)��Ĥ���ȡ����饤����Ȥ��Хå����饦��
- �ɤǼ¹Ԥ����Τǡ�5��³����Ʊ���˵�ư�Ǥ��ޤ���
+ のように最後に&amp;(アンパサント)をつけると、クライアントがバックグラウン
+ ドで実行されるので、5つ続けて同時に起動できます。
 </p>
 <p>
- ����:���饤����Ȥ�ư�������ˡ������Ф���ư���Ƥ���ɬ�פ�����ޤ���
+ 注意:クライアントを起動する前に、サーバが起動しておく必要があります。
 </p>
 </div>
 
 <hr class="middle">
-<h2>6.6 ���饤����Ȥβ��ɤˤĤ���</h2>
+<h2>6.6 クライアントの改良について</h2>
 <div class="text">
 <p>
-���饤����Ȥβ��ɤˤϡ����ߤ�ɸ�९�饤����Ȥ��ɤΤ褦�ˤĤ����Ƥ��뤫���Τ�ʤ���Фʤ�ޤ��󡣾ܤ��������9�Ϥˤ���ޤ��Τǡ������ɤळ�Ȥ򤪤����ᤷ�ޤ���
+クライアントの改良には、現在の標準クライアントがどのようにつくられているかを知らなければなりません。詳しい情報は9章にありますので、一度読むことをおすすめします。
 </p>
 
 <p>
-�ޤ��������С��ȥ��饤����Ȥδ֤Ǥ��̿����Ԥ��ޤ����������̿�����7�Ϥǲ��⤷�Ƥ��ޤ���
+また、サーバーとクライアントの間では通信が行われますが、その通信手順は7章で解説しています。
 
 </p>
 </div>
 
 <hr>
 <p>
-<a href="c-pref.html">[���Υڡ���]</a>
-<a href="manual.html">[�ܼ�]</a>
-<a href="c-client.html">[���Υڡ���]</a>
+<a href="c-pref.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="c-client.html">[次のページ]</a>
 </p>
 <hr>
 <p>
-<a href="../../index.html">[UECda]</a> ��
+<a href="../../index.html">[UECda]</a> →
 
-<a href="../index.html">[UECda-2010]</a> �� 
-<a href="manual.html">[�ޥ˥奢���ܼ�]</a> ��
-[���饤����Ȥβ��ɡ�����ѥ��롢�¹�]
+<a href="../index.html">[UECda-2010]</a> → 
+<a href="manual.html">[マニュアル目次]</a> →
+[クライアントの改良、コンパイル、実行]
 </p>
 </body>
 </html>

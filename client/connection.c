@@ -12,39 +12,39 @@
 // #include "connection.h"
 #include "daihinmin.h"
 
-#define PROTOCOL_VERSION	20070		//�v���g�R�����@�[�W������\������
-#define DEFAULT_SERVER		"127.0.0.1"	//�f�t�H���g�̃T�[�o�̃A�h���X ������Ŏw��
-#define DEFAULT_PORT		42485		//�f�t�H���g�̃|�[�g�ԍ� �����Ŏw��
-#define DEFAULT_NAME		"default"	//�f�t�H���g�̃N���C�A���g�� ������Ŏw��
+#define PROTOCOL_VERSION	20070		// プロトコルバージョン（2007仕様）
+#define DEFAULT_SERVER		"127.0.0.1"	// デフォルト接続先のサーバーアドレス
+#define DEFAULT_PORT		42485		// デフォルトで使うポート番号
+#define DEFAULT_NAME		"default"	// デフォルトのクライアント名
 
 extern const int g_logging;
 
-/* �ÓI�֐��̊֐��v���g�^�C�v�錾 */
+/* 内部関数のプロトタイプ */
 static int refreshTable(int table_val[8][15]);
 static int sendTable(int table_val[8][15]);
 static int openSocket(const char ip_addr[], uint16_t portnum_data);
 static int sendProfile(const char user[15]);
 
-/*connection�����ϐ�*/
+/* connection で使う変数 */
 
-//�\�P�b�g�֘A�̕ϐ���ÓI�O���[�o���ϐ��Ƃ��Đ錾
+// ソケット関連のグローバル変数
 static int g_sockfd;
 static int g_buf_len;
 static struct sockaddr_in g_client_addr;
 
-//�ڑ�����T�[�o�A�|�[�g���i�[����ϐ�
+// サーバー・ポートなど接続先設定
 static char     server_name[256]= DEFAULT_SERVER;
 static uint16_t port            = DEFAULT_PORT;
-//�T�[�o�ɒʒm����N���C�A���g��
+// サーバーに通知するクライアント名
 static char     user_name[15]   = DEFAULT_NAME;
 
-//�e�[�u������M�����񐔂��J�E���g
+// テーブル送受信回数（ログ用）
 static int table_count=0;
 
-//host�ɐڑ��� �Q�[���ɎQ������ �v���[���[�ԍ���Ԃ�
+// サーバーに接続してプレイヤー番号を取得
 int entryToGame(void){
-  int my_playernum;  //�v���C���[�ԍ����L������
-  //�T�[�o�ɑ΂��ă\�P�b�g��p�ӂ��Aconnect����
+  int my_playernum;  // 自分のプレイヤー番号
+  // サーバーにソケット接続を張る
   if((openSocket(server_name,port))== -1){
     printf("failed to open socket to server[%s:%d].\n",server_name,port);
     exit (1);
@@ -53,12 +53,12 @@ int entryToGame(void){
     printf("connectiong to server was finished successfully[%s:%d].\n",server_name,port);
   }
 
-  sendProfile(user_name);     //�N���C�A���g�̏��𑗐M
+  sendProfile(user_name);     // クライアント情報を送信
 
   if(g_logging==1){
     printf("send profile .\n");
   }
-  //���g�̃v���C���[�ԍ����T�[�o������炤
+  // プレイヤー番号を受信
   if(read(g_sockfd, &my_playernum, sizeof(my_playernum)) > 0){
     my_playernum=ntohl(my_playernum);
     if(g_logging==1){
@@ -70,30 +70,30 @@ int entryToGame(void){
     exit (1);
   }
 
-  return my_playernum; //���g�̃v���C���[�ԍ���Ԃ��B
+  return my_playernum; // プレイヤー番号を返す
 }
 
 
-//�\�P�b�g��close���s�� ���������ꍇ�� 0 ��Ԃ��B�G���[�����������ꍇ�� -1 ��Ԃ�
+// ソケットを閉じる 成功:0 / 失敗:-1
 int closeSocket(){
   return close(g_sockfd);
 }
 
-//�V���b�t�����ꂽ�J�[�h���󂯎�� ����ڂ̃Q�[������Ԃ�
+// シャッフル後のカードテーブルを受信してゲーム開始
 int startGame(int table[8][15]){
   static int game_count=0;
-  //���O��肪�L���Ȃ�Q�[���ԍ���\��
+  // ログ出力: ゲーム回数
   if(g_logging == 1){
     printf("game number is %d.\n",game_count);
   }
-  table_count=0;// �Q�[���J�n�Ɠ����Ƀe�[�u���̃J�E���g��0�ɂ���B
-  //����̃J�[�h���󂯎��
+  table_count=0;// 交換テーブル受信回数をリセット
+  // 初期の交換用カードを受信
   if(((refreshTable(table)))== -1) {
     printf("failed to get initial cards table for exchange.\n");
     exit(1) ;
   }
 
-  //���O��肪�L���Ȃ�A�z�z���ꂽ�J�[�h(�Ƃ������e�[�u��)��\��
+  // ログ出力: 初期交換カードのテーブル
   if(g_logging ==1){
     printf("initial cards table is follow.\n");
     outputTable(table);
@@ -104,62 +104,62 @@ int startGame(int table[8][15]){
   return game_count;
 }
 
-//�J�[�h�������̃J�[�h�̒�o
+// 交換後のカードテーブルを送信
 void sendChangingCards(int cards[8][15]){
   if(sendTable(cards)==-1){
-    //���s������G���[���͂��Ē�~
+    // 送信に失敗したら終了
     printf("sending cards table was failed.\n");
     exit (1);
   }
   else{
-    //��������loggin�t���O�������Ă�����A���b�Z�[�W��f��
+    // loggingフラグが立っていれば完了メッセージ
     if(g_logging==1){
       printf("sending cards-table was done successfully.\n");
     }
   }
-  //loggin�t���O�������Ă�����A�e�[�u���̓��e���o��
+  // loggingフラグが立っていれば受信テーブルも表示
   if(g_logging == 1){
-    //�e�[�u���̓��e���o��
+    // テーブル内容を出力
     printf("sent card table was......\n");
     outputTable(cards);
   }
 }
 
-//�J�[�h���󂯎�� �����̃^�[���ł����1��Ԃ�
+// カード交換は1回のみ
 int receiveCards(int cards[8][15]){
-  //�J�[�h���󂯎��
+  // カードを受信
   if(((refreshTable(cards)))== -1 ){
-    //���s�����ꍇ�̃G���[����
+    // エラーなら終了
     printf("failed to get my cards table.\n");
     exit (1);
   }
   else{
-    //������ logging�t���O�ɉ������O�̕\��
+    // loggingフラグが立っていれば交換後テーブルも表示
     if(g_logging == 1){
       printf("recieved my cards table.\n");
       printf("  table count=%d\n",table_count);
       outputTable(cards);
     }
   }
-  getState(cards);   //��̏�Ԃ̓ǂݏo��
+  getState(cards);   // 現在の場の状態を取得
   return cards[5][2];
 }
 
-//�J�[�h���o���󗝂��ꂽ���ۂ���Ԃ�
+// サーバーからのカード提出要求に応答
 int sendCards(int cards[8][15]){
-  int accept_flag; //��o�����J�[�h���󗝂��ꂽ���𔻕ʂ���ϐ�
-  //�J�[�h�𑗐M����
+  int accept_flag; // 提出可否のフラグ
+  // カードを送信
   if(g_logging==1){
     printf("send card table was following.\n");
     outputTable(cards);
   }
 
-  if((sendTable(cards)) == -1 ){ //�J�[�h�𑗐M�� ���s���̓��b�Z�[�W��\��
+  if((sendTable(cards)) == -1 ){ // 送信に失敗したらメッセージを出して終了
     printf("failed to send card sending table. \n");
     exit(1);
   }
 
-  //accept_flag���T�[�o����󂯎��
+  // accept_flag はサーバーからの応答
   if((read(g_sockfd, &accept_flag, sizeof(accept_flag))) < 0 ){
     printf("failed to get accept sign.\n");
     exit(1);
@@ -172,16 +172,16 @@ int sendCards(int cards[8][15]){
   return ntohl(accept_flag);
 }
 
-//���E���h�̍Ō�ɃQ�[�����I�������� �T�[�o����󂯂Ƃ� ���̒l��Ԃ��B
+// 1ラウンド終了で結果を送受信し、順位を決定
 int beGameEnd(void){
   int one_gameend_flag;
-  //�Q�[���I���̃t���O���󂯎��
+  // ゲーム終了フラグを確認
   if ((read(g_sockfd, &one_gameend_flag, sizeof(one_gameend_flag))) < 0 ){
-    //��M���s�� ���b�Z�[�W��\������~
+    // 送信に失敗したらエラーメッセージ
     printf("failed to check if the game was finished.\n");
     exit(1);
   }else{
-    //��M������ �l�̃o�C�g�I�[�_�[�𒼂�
+    // 受信した順位をネットワークオーダーから復元
     one_gameend_flag=ntohl( one_gameend_flag);
   }
   return one_gameend_flag;
@@ -189,24 +189,24 @@ int beGameEnd(void){
 
 void lookField(int cards[8][15]){
   if(((refreshTable(cards)))== -1 ){
-    //���s�����ꍇ�̃G���[����
+    // loggingフラグが立っていれば結果テーブルを表示
     printf("failed to get result table.\n");
     exit (1);
   }else{
-    //���������O��\��
+    // 結果のログ出力終了
     if(g_logging == 1){
       printf("received result table.\n");
       outputTable(cards);
       printf("end bacards\n");
     }
   }
-  getField(cards); //��ɏo�Ă���J�[�h�̏���ǂݏo��
+  getField(cards); // 場に出たカード情報を取得
 }
 
 void checkArg(int argc,char* argv[]){
   /*
-    �n���ꂽ�R�}���h���C������^����ꂽ�����̏�����͂��A�K�v�ɉ�����
-    �T�[�o�A�h���X�A�|�[�g�ԍ��A�N���C�A���g����ύX����B
+    -h サーバーアドレス, -p ポート番号, -n ユーザー名の指定を受け付ける
+    コマンドラインオプションの使い方を示す
   */
   const char Option[]="[-h server_adress] [-p port] [-n user_name]";
   int        arg_count=1;
@@ -248,12 +248,12 @@ void checkArg(int argc,char* argv[]){
   }
 }
 
-//�T�[�o����e�[�u�������󂯎��A�����Ȃ�0���s�Ȃ�-1��Ԃ�
+// テーブルを受信してメモリに展開。成功なら0、失敗なら-1を返す
 static int refreshTable(int table_val[8][15]){
   uint32_t net_table[8][15];
   if ((g_buf_len = read(g_sockfd,net_table, 480)) > 0){
     int i,j;
-    //�S�Ẵe�[�u���̗v�f���l�b�g���[�N�I�[�_�[����z�X�g�I�[�_�[�ɕϊ�
+    // 各要素をネットワークバイトオーダーからホスト順に変換
     for(i=0;i<8;i++)
       for(j=0;j<15;j++)
 	table_val[i][j]=ntohl(net_table[i][j]);
@@ -265,15 +265,15 @@ static int refreshTable(int table_val[8][15]){
   }
 }
 
-//�T�[�o�Ƀe�[�u�����𓊂���֐��B�����Ȃ�0�@���s��-1��Ԃ�
+// テーブルを送信する。成功:0 失敗:-1
 static int sendTable(int table_val[8][15]){
   uint32_t net_table[8][15];
   int i,j;
-  //�S�Ẵe�[�u���̗v�f���z�X�g�I�[�_�[����l�b�g���[�N�I�[�_�[�ɕϊ�
+  // 送信時もネットワークバイトオーダーに変換
   for(i=0;i<8;i++)
     for(j=0;j<15;j++)
       net_table[i][j]=htonl(table_val[i][j]);
-  //�ϊ������e�[�u���𑗐M
+  // テーブル本体を送信
   if((g_buf_len = write(g_sockfd, net_table, 480))> 0){
     return (0);
   }
@@ -282,54 +282,54 @@ static int sendTable(int table_val[8][15]){
   }
 }
 
-//�\�P�b�g�̐ݒ�E�ڑ����s�� ������0�A���s��-1��Ԃ�
+// ソケット接続を開く 成功:0 失敗:-1
 static int openSocket(const char addr[], uint16_t port_num){
-  //�\�P�b�g�̐���
+  // ソケットを作成
   if ((g_sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
     return(-1);
   }
 
-  /* �|�[�g�ƃA�h���X�̐ݒ� */
+  /* ポートとアドレスの設定 */
   bzero((char*)&g_client_addr,sizeof(g_client_addr));
   g_client_addr.sin_family = PF_INET;
   g_client_addr.sin_port = htons(port_num);
   g_client_addr.sin_addr.s_addr = inet_addr(addr);
 
-  //IP�A�h���X�Ŏw�肳��Ă��Ȃ��Ƃ��A�z�X�g���̉��������݂�
+  // IPアドレスに変換できなければホスト名解決も試す
   if (g_client_addr.sin_addr.s_addr == 0xffffffff) {
     struct hostent *host;
     host = gethostbyname(addr);
     if (host == NULL) {
       printf("failed to gethostbyname() : %s.\n",addr);
-      return -1;//�z�X�g�������Ɏ��s�����Ƃ��A-1��Ԃ�
+      return -1;// 名前解決に失敗したら -1 を返す
     }
     g_client_addr.sin_addr.s_addr=
       *(unsigned int *)host->h_addr_list[0];
   }
 
-  /* �T�[�o�ɃR�l�N�g���� */
+  /* サーバーに connect */
   if (connect(g_sockfd,(struct sockaddr *)&g_client_addr, sizeof(g_client_addr)) == 0){
     return 0;
   }
   return -1;
 }
 
-//�N���C�A���g�̏��𑗐M
+// クライアント情報を送信
 static int sendProfile(const char user[15]){
   int profile[8][15];
   int i;
 
-  bzero((char *) &profile, sizeof(profile));        //�e�[�u����0�ł��߂�
-  profile[0][0]=PROTOCOL_VERSION;                   //2007�N�x�ł�錾
-  for(i=0;i<15;i++) profile[1][i]=(int)user[i];     //����Җ����e�[�u���Ɋi�[
+  bzero((char *) &profile, sizeof(profile));        // プロファイルテーブルを初期化
+  profile[0][0]=PROTOCOL_VERSION;                   // 2007年版のプロトコル番号
+  for(i=0;i<15;i++) profile[1][i]=(int)user[i];     // ユーザー名をテーブルに格納
 
-  //���M
-  if(sendTable(profile)==-1){                       //���s������G���[���o�͂���~
+  // 送信する
+  if(sendTable(profile)==-1){                       // 送信に失敗したらエラー終了
     printf("sending profile table was failed.\n");
     exit (1);
   }
 
-  //��������logging�t���O�������Ă�����A���b�Z�[�W�ƃe�[�u���̓��e���o�͂���
+  // loggingフラグが立っていれば送信結果を表示
   if(g_logging==1){
     printf("sending profile was done successfully.\n");
     printf("sent profile table was......\n");

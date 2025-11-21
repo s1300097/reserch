@@ -2,34 +2,34 @@
 "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="ja">
 <HEAD>
-<meta http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <META http-equiv="Content-Style-Type" content="text/css">
 <LINK REV="MADE" HREF="mailto:tnlab-webmaster@ice.uec.ac.jp">
 <LINK rel="INDEX" href="./index.html">
 <link href="ver01.css" rel="stylesheet" type="text/css">
-<TITLE>���饤����Ȥβ��ɡ�����ѥ��롢�¹ԡ�JAVA�ǡ�</TITLE>
+<TITLE>クライアントの改良、コンパイル、実行（JAVA版）</TITLE>
 </HEAD>
 <BODY>
 <p>
-<a href="j-pref.html">[���Υڡ���]</a>
-<a href="manual.html">[�ܼ�]</a>
-<a href="j-client.html">[���Υڡ���]</a>
+<a href="j-pref.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="j-client.html">[次のページ]</a>
 </p>
 <hr>
 
-<h1>10. ���饤����Ȥβ��ɡ�����ѥ��롢�¹�</h1>
+<h1>10. クライアントの改良、コンパイル、実行</h1>
 <div class="text">
 <p>
-������Ǥϥ��饤����Ȥβ��ɡ�����ѥ��롢�¹ԤˤĤ��Ʋ��⤷�ޤ���
+この節ではクライアントの改良、コンパイル、実行について解説します。
 </p>
 </div>
 
 <hr class="middle">
-<h2>10.1 ���饤����ȥ��եȥ������Υ���ѥ���</h2>
+<h2>10.1 クライアントソフトウェアのコンパイル</h2>
 <div class="text">
 <p>
-���󥽡�����/workspace/daihinmin/�ե�����˰�ư�������Υ��ޥ�ɤ�¹Ԥ����
-���饤����ȥץ�����ब����ѥ��뤵��ޤ���
+コンソール上で/workspace/daihinmin/フォルダに移動し、次のコマンドを実行すると
+クライアントプログラムがコンパイルされます。
 </p>
 <div class="indent">
 <div class="comm">
@@ -39,8 +39,8 @@ javac -cp daihinmin.jar ****.java
 </div>
 </div>
 <p>
-****�ˤϺ�������������̾����ꤷ�ޤ���
-�㤨�Х�����̾��BotHoge.java�ʤ�
+****には作成したソース名を指定します。
+例えばソース名がBotHoge.javaなら
 </p>
 <div class="indent">
 <div class="comm">
@@ -50,11 +50,11 @@ javac -cp daihinmin.jar BotHoge.java
 </div>
 </div>
 <p>
-�Ȥʤ�ޤ���
+となります。
 </p>
 <p>
-�ޤ�daihinmin.jar�ե��������ष�ƥ���ѥ����Ԥ����Ȥ�Ǥ��ޤ���
-�ʲ��Υ��ޥ�ɤ�jar�ե��������ष�Ƥ���������
+またdaihinmin.jarファイルを解凍してコンパイルを行うこともできます。
+以下のコマンドでjarファイルを解凍してください。
 </p>
 <div class="indent">
 <div class="comm">
@@ -65,7 +65,7 @@ jar -xvf daihinmin.jar
 </div>
 
 <p>
-���ξ��ϡ����Υ��ޥ�ɤǥ���ѥ��뤷�Ƥ���������
+この場合は、次のコマンドでコンパイルしてください。
 </p>
 
 <div class="indent">
@@ -79,19 +79,19 @@ javac BotHoge.java
 </div>
 
 <hr class="middle">
-<h2>10.2 ���饤����ȥ��եȥ�������ư������å�</h2>
+<h2>10.2 クライアントソフトウェアの動作チェック</h2>
 <div class="text">
 <p>
-��ȯ�������饤����ȥץ�������ºݤ˥����С������蘆������ˡ�ˤĤ��ƽҤ٤ޤ���
+開発したクライアントプログラムを実際にサーバーと対戦させる方法について述べます。
 </p>
 
 </div>
 <hr class="middle">
-<h3>10.2.1 �����С��μ¹�</h3>
+<h3>10.2.1 サーバーの実行</h3>
 <div class="text">
 <p>
-���饤����ȥץ����������蘆����ˤϥ����С���ư����ɬ�פ�����ޤ���
-/workspace/daihinmin/�ե�����˰�ư�塢�ʲ��Υ��ޥ�ɤ����Ϥ��Ƥ���������
+クライアントプログラムを対戦させるにはサーバーを起動する必要があります。
+/workspace/daihinmin/フォルダに移動後、以下のコマンドを入力してください。
 </p>
 
 <div class="indent">
@@ -103,19 +103,19 @@ java -jar daihinmin.jar
 </div>
 
 <p>
-����ǥ����С����ץ������ε�ư�ϴ�λ�Ǥ���
-�����Хץ������ξܤ����Ȥ����ˤĤ��Ƥ�<a href="j-server.html">��12��</a>���ɤߤ���������
+これでサーバー・プログラムの起動は完了です。
+サーバプログラムの詳しい使い方については<a href="j-server.html">第12章</a>をお読みください。
 </p>
 
 </div>
 <hr class="middle">
-<h3>10.2.2 ���饤����Ȥμ¹�</h3>
+<h3>10.2.2 クライアントの実行</h3>
 <div class="text">
 
 <p>
-����ѥ���Ѥߤ�class�ե����뤬ɬ�פǤ���
-����ѥ����\ref{subsubsec:CompileClient}��򻲾Ȥ��Ƥ���������
-/workspace/daihinmin/�ե�����˰�ư�塢�ʲ��Υ��ޥ�ɤ�¹Ԥ��ޤ���
+コンパイル済みのclassファイルが必要です。
+コンパイルは\ref{subsubsec:CompileClient}節を参照してください。
+/workspace/daihinmin/フォルダに移動後、以下のコマンドを実行します。
 </p>
 <div class="indent">
 <div class="comm">
@@ -127,19 +127,19 @@ java -cp daihinmin.jar jp.ac.uec.daihinmin.net.TableClient -player $className$ [
 
 <ul>
 <li><span class="midasi">-player $className$</span><br>
-�¹Ԥ��륯�饤����ȥץ������Υ��饹̾����ꤷ�ޤ���ɬ�ܡˡ�
+実行するクライアントプログラムのクラス名を指定します（必須）。
 
 <li><span class="midasi"> -address $address$</span><br>
-�����Ф���ư���Ƥ��륳��ԥ塼����IP���ɥ쥹(IPv4)����ꤷ�ޤ���
-��ά����� 127.0.0.1 �����ꤵ��ޤ���
+サーバが起動しているコンピュータのIPアドレス(IPv4)を指定します。
+省略すると 127.0.0.1 が指定されます。
 
 <li><span class="midasi"> -port $port$</span><br>
-�����Ф���³����������Ƥ���ݡ����ֹ����ꤷ�ޤ���
-��ά����� 42485 �����ꤵ��ޤ���
+サーバが接続を持ち受けているポート番号を指定します。
+省略すると 42485 が指定されます。
 </ul>
 <p>
-�㤨�С������Ф�Ʊ������ԥ塼����42485�ݡ��Ȥ��Ԥ������Ƥ���Ȥ��ˡ�
-BotHoge.class�򥯥饤����ȤȤ��ƻ��ä������硢���Τ褦�˼¹Ԥ��ޤ���
+例えば、サーバが同じコンピュータの42485ポートで待ち受けているときに、
+BotHoge.classをクライアントとして参加させる場合、次のように実行します。
 </p>
 
 <div class="indent">
@@ -150,7 +150,7 @@ java -cp daihinmin.jar jp.ac.uec.daihinmin.net.TableClient -player BotHoge -addr
 </div>
 </div>
 <p>
-����ϼ��Τ褦�˾�ά�Ǥ��ޤ���
+これは次のように省略できます。
 </p>
 <div class="indent">
 <div class="comm">
@@ -161,17 +161,17 @@ java -cp daihinmin.jar jp.ac.uec.daihinmin.net.TableClient -player BotHoge
 </div>
 </div>
 <hr class="middle">
-<h3>10.2.3 ������ɥ�����⡼�ɤǤμ¹�</h3>
+<h3>10.2.3 スタンドアロンモードでの実行</h3>
 <div class="text">
 <p>
-�ʾ�����������Τ������åȤ���Ѥ�������������ˡ�Ǥ���
-Java�ǤˤϤ���˲ä��ư�ĤΥץ������ε�ư�����郎�Ԥ��롢������ɥ�����⡼�ɤ��Ѱդ���Ƥ��ޤ���
-������ɥ�����⡼�ɤϼ�ڤ�ư��γ�ǧ���Ǥ��������åȤ�𤵤ʤ�ʬ��ư���ڲ��Ǥ���
+以上で説明したのがソケットを使用した場合の対戦方法です。
+Java版にはこれに加えて一つのプログラムの起動で対戦が行える、スタンドアロンモードが用意されています。
+スタンドアロンモードは手軽に動作の確認ができ、ソケットを介さない分、動作も軽快です。
 </p>
 
 <p>
-������ɥ�����⡼�ɤǼ¹Ԥ�����
-/workspace/daihinmin/�ե�����˰�ư�塢�ʲ��Υ��ޥ�ɤ�¹Ԥ��ޤ���
+スタンドアロンモードで実行する場合
+/workspace/daihinmin/フォルダに移動後、以下のコマンドを実行します。
 </p>
 <div class="indent">
 <div class="comm">
@@ -185,16 +185,16 @@ java -jar daihinmin.jar -mode alone -players BotA BotB BotC BotD BotE
 
 <hr>
 <p>
-<a href="j-pref.html">[���Υڡ���]</a>
-<a href="manual.html">[�ܼ�]</a>
-<a href="j-client.html">[���Υڡ���]</a>
+<a href="j-pref.html">[前のページ]</a>
+<a href="manual.html">[目次]</a>
+<a href="j-client.html">[次のページ]</a>
 </p>
 <hr>
 <p>
-<a href="../../index.html">[UECda]</a> ��
-<a href="../index.html">[UECda-2010]</a> ��
-<a href="manual.html">[�ޥ˥奢���ܼ�]</a> ��
-[�����С��ץ������ˤĤ��ơ�JAVA�ǡ�]
+<a href="../../index.html">[UECda]</a> →
+<a href="../index.html">[UECda-2010]</a> →
+<a href="manual.html">[マニュアル目次]</a> →
+[サーバープログラムについて（JAVA版）]
 </p>
 </body>
 </html>
