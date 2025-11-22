@@ -161,7 +161,7 @@ static int estimate_final_reward(int my_playernum)
   return 6 - my_rank; // 1位:5, 5位:1 の簡易報酬
 }
 
-static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int selected_action[ACTION_VEC_LEN], int actions_count, int actions_flat[][ACTION_VEC_LEN], int reward, int done)
+static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int selected_action[ACTION_VEC_LEN], int actions_count, int actions_flat[][ACTION_VEC_LEN], float reward, int done)
 {
   FILE *fp = open_log_file();
   if (fp == NULL)
@@ -186,7 +186,7 @@ static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], 
     }
     fprintf(fp, "]%s", (a + 1 == actions_count) ? "" : ",");
   }
-  fprintf(fp, "],\"reward\":%d,\"done\":%d}\n", reward, done);
+  fprintf(fp, "],\"reward\":%.4f,\"done\":%d}\n", reward, done);
   fflush(fp);
 }
 
@@ -832,10 +832,15 @@ int main(int argc, char *argv[])
         struct move_list candidate_list;
         init_move_list(&candidate_list);
         collect_playable_moves(&candidate_list, own_cards);
+        int real_candidates = candidate_list.count;
         for (int i = 0; i < candidate_list.count; i++)
         {
-          to_rank_counts(actions_flat[i], candidate_list.moves[i]);
+          flatten_cards(actions_flat[i], candidate_list.moves[i]);
         }
+        // パス（何も出さない）を候補に追加
+        clearTable(candidate_list.moves[candidate_list.count]);
+        flatten_cards(actions_flat[candidate_list.count], candidate_list.moves[candidate_list.count]);
+        candidate_list.count++;
 
         build_state_vector(state_vec, own_cards);
         char state_key[256];
@@ -851,11 +856,28 @@ int main(int argc, char *argv[])
           memcpy(action_vec, actions_flat[choice_idx], sizeof(action_vec));
         }
 
-        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, action_vec, candidate_list.count, actions_flat, 0, 0);
-        g_step_in_episode++;
-
         accept_flag = sendCards(select_cards);
         (void)accept_flag;
+
+        // 報酬計算（環境の受付確認後）
+        int cards_played = qtyOfCards(select_cards);
+        float reward = 0.0f;
+        if (accept_flag == 1)
+        {
+          if (cards_played > 0)
+            reward += 0.1f;
+          else if (real_candidates > 0)
+            reward -= 0.05f; // 自発的なパスのみペナルティ
+
+          reward += 0.05f * cards_played;
+          struct state_type move_state;
+          analyzeMoveState(select_cards, &move_state);
+          if (move_state.rev != state.rev)
+            reward += 0.2f; // 革命が起きた
+        }
+
+        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, action_vec, candidate_list.count, actions_flat, reward, 0);
+        g_step_in_episode++;
       }
       else
       {
