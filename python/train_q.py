@@ -13,11 +13,11 @@ Offline Q-table trainer.
 import argparse
 import csv
 import json
-import math
 import sys
+import datetime
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List
 
 
 def load_jsonl(path: Path) -> Iterable[dict]:
@@ -42,17 +42,29 @@ def state_key(state_vec: List[int]) -> str:
     return ",".join(str(v) for v in state_vec)
 
 
-def train(q_log: Path, out_model: Path, metrics_csv: Path, metrics_png: Path, gamma: float, lr: float) -> None:
+def load_model(path: Path) -> Dict[str, Dict[str, float]]:
+    if not path.exists():
+        return {}
+    try:
+        with path.open() as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def train(q_log: Path, init_model: Dict[str, Dict[str, float]], out_model: Path, metrics_csv: Path, metrics_png: Path, gamma: float, lr: float) -> None:
     episodes: Dict[int, List[dict]] = defaultdict(list)
     for row in load_jsonl(q_log):
         if "ep" not in row:
             continue
         episodes[int(row["ep"])].append(row)
 
-    q_table: Dict[str, Dict[str, float]] = {}
+    q_table: Dict[str, Dict[str, float]] = dict(init_model) if init_model else {}
     metric_rows = []
+    max_ep = 0
 
     for ep_id in sorted(episodes):
+        max_ep = max(max_ep, ep_id)
         steps = episodes[ep_id]
         final_reward = 0.0
         for s in steps:
@@ -83,8 +95,16 @@ def train(q_log: Path, out_model: Path, metrics_csv: Path, metrics_png: Path, ga
     out_model.parent.mkdir(parents=True, exist_ok=True)
     metrics_csv.parent.mkdir(parents=True, exist_ok=True)
 
+    # versioned snapshot
+    if max_ep > 0:
+        ep_path = out_model.parent / f"q_table_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with ep_path.open("w") as f:
+            json.dump(q_table, f)
+
+    # latest
     with out_model.open("w") as f:
         json.dump(q_table, f)
+
     with metrics_csv.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["episode", "steps", "final_reward", "return"])
         writer.writeheader()
@@ -110,10 +130,11 @@ def train(q_log: Path, out_model: Path, metrics_csv: Path, metrics_png: Path, ga
 def main(argv: List[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--log", type=Path, default=Path("logs/experience.jsonl"))
-    parser.add_argument("--out", type=Path, default=Path("models/q_table.json"))
+    parser.add_argument("--out", type=Path, default=Path("models/q_table_latest.json"))
+    parser.add_argument("--init-model", type=Path, default=None, help="existing q_table.json to warm-start from (default: --out if present)")
     parser.add_argument("--metrics", type=Path, default=Path("runs/train_metrics.csv"))
     parser.add_argument("--metrics-fig", type=Path, default=Path("runs/train_curve.png"))
-    parser.add_argument("--gamma", type=float, default=0.99)
+    parser.add_argument("--gamma", type=float, default=0.9)
     parser.add_argument("--lr", type=float, default=0.1)
     args = parser.parse_args(argv)
 
@@ -121,7 +142,10 @@ def main(argv: List[str]) -> int:
         print(f"log file not found: {args.log}", file=sys.stderr)
         return 1
 
-    train(args.log, args.out, args.metrics, args.metrics_fig, args.gamma, args.lr)
+    init_model_path = args.init_model if args.init_model is not None else args.out
+    init_model = load_model(init_model_path)
+
+    train(args.log, init_model, args.out, args.metrics, args.metrics_fig, args.gamma, args.lr)
     print(f"trained model saved to {args.out}")
     print(f"metrics saved to {args.metrics}")
     return 0
