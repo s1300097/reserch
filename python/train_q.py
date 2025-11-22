@@ -52,7 +52,16 @@ def load_model(path: Path) -> Dict[str, Dict[str, float]]:
         return {}
 
 
-def train(q_log: Path, init_model: Dict[str, Dict[str, float]], out_model: Path, metrics_csv: Path, metrics_png: Path, gamma: float, lr: float) -> None:
+def train(
+    q_log: Path,
+    init_model: Dict[str, Dict[str, float]],
+    out_model: Path,
+    metrics_csv: Path,
+    metrics_png: Path,
+    gamma: float,
+    lr: float,
+    epochs: int,
+) -> None:
     episodes: Dict[int, List[dict]] = defaultdict(list)
     for row in load_jsonl(q_log):
         if "ep" not in row:
@@ -60,37 +69,49 @@ def train(q_log: Path, init_model: Dict[str, Dict[str, float]], out_model: Path,
         episodes[int(row["ep"])].append(row)
 
     q_table: Dict[str, Dict[str, float]] = dict(init_model) if init_model else {}
+    counts: Dict[str, Dict[str, int]] = defaultdict(dict)
+    for s_key, actions in q_table.items():
+        for a_key in actions:
+            counts[s_key][a_key] = 1  # pseudo-count for loaded entries
     metric_rows = []
     max_ep = 0
 
-    for ep_id in sorted(episodes):
-        max_ep = max(max_ep, ep_id)
-        steps = episodes[ep_id]
-        final_reward = 0.0
-        for s in steps:
-            if s.get("done") and "final_reward" in s:
-                final_reward = float(s["final_reward"])
-                break
+    for epoch in range(max(1, epochs)):
+        for ep_id in sorted(episodes):
+            max_ep = max(max_ep, ep_id)
+            steps = episodes[ep_id]
+            final_reward = 0.0
+            for s in steps:
+                if s.get("done") and "final_reward" in s:
+                    final_reward = float(s["final_reward"])
+                    break
 
-        actions = [s for s in steps if "action_idx" in s]
-        returns = final_reward
-        for s in reversed(actions):
-            reward = float(s.get("reward", 0.0))
-            returns = reward + gamma * returns
-            skey = state_key(s["state"])
-            akey = action_key(s["action_flat"])
-            q_entry = q_table.setdefault(skey, {})
-            old = q_entry.get(akey, 0.0)
-            q_entry[akey] = old + lr * (returns - old)
+            actions = [s for s in steps if "action_idx" in s]
+            returns = final_reward
+            for s in reversed(actions):
+                reward = float(s.get("reward", 0.0))
+                returns = reward + gamma * returns
+                skey = state_key(s["state"])
+                akey = action_key(s["action_flat"])
+                q_entry = q_table.setdefault(skey, {})
+                cnt_entry = counts.setdefault(skey, {})
+                c = cnt_entry.get(akey, 0)
+                old = q_entry.get(akey, 0.0)
+                # incremental average to suit offline batch updates
+                new_val = (old * c + returns) / (c + 1)
+                # lr can optionally smooth toward the new average
+                q_entry[akey] = old + lr * (new_val - old)
+                cnt_entry[akey] = c + 1
 
-        metric_rows.append(
-            {
-                "episode": ep_id,
-                "steps": len(actions),
-                "final_reward": final_reward,
-                "return": returns,
-            }
-        )
+            if epoch == epochs - 1:
+                metric_rows.append(
+                    {
+                        "episode": ep_id,
+                        "steps": len(actions),
+                        "final_reward": final_reward,
+                        "return": returns,
+                    }
+                )
 
     out_model.parent.mkdir(parents=True, exist_ok=True)
     metrics_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -136,6 +157,7 @@ def main(argv: List[str]) -> int:
     parser.add_argument("--metrics-fig", type=Path, default=Path("runs/train_curve.png"))
     parser.add_argument("--gamma", type=float, default=0.9)
     parser.add_argument("--lr", type=float, default=0.1)
+    parser.add_argument("--epochs", type=int, default=2, help="offline epochs over collected episodes")
     args = parser.parse_args(argv)
 
     if not args.log.exists():
@@ -145,7 +167,7 @@ def main(argv: List[str]) -> int:
     init_model_path = args.init_model if args.init_model is not None else args.out
     init_model = load_model(init_model_path)
 
-    train(args.log, init_model, args.out, args.metrics, args.metrics_fig, args.gamma, args.lr)
+    train(args.log, init_model, args.out, args.metrics, args.metrics_fig, args.gamma, args.lr, args.epochs)
     print(f"trained model saved to {args.out}")
     print(f"metrics saved to {args.metrics}")
     return 0
