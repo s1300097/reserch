@@ -87,6 +87,7 @@ def train(
                     break
 
             actions = [s for s in steps if "action_idx" in s]
+            total_step_reward = sum(float(s.get("reward", 0.0)) for s in actions)
             returns = final_reward
             for s in reversed(actions):
                 reward = float(s.get("reward", 0.0))
@@ -110,6 +111,8 @@ def train(
                         "steps": len(actions),
                         "final_reward": final_reward,
                         "return": returns,
+                        "total_step_reward": total_step_reward,
+                        "avg_step_reward": (total_step_reward / len(actions)) if actions else 0.0,
                     }
                 )
 
@@ -127,7 +130,17 @@ def train(
         json.dump(q_table, f)
 
     with metrics_csv.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["episode", "steps", "final_reward", "return"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "episode",
+                "steps",
+                "final_reward",
+                "return",
+                "total_step_reward",
+                "avg_step_reward",
+            ],
+        )
         writer.writeheader()
         writer.writerows(metric_rows)
 
@@ -136,10 +149,12 @@ def train(
 
         episodes_axis = [row["episode"] for row in metric_rows]
         final_rewards = [row["final_reward"] for row in metric_rows]
+        avg_rewards = [row.get("avg_step_reward", 0.0) for row in metric_rows]
         plt.figure(figsize=(8, 4))
         plt.plot(episodes_axis, final_rewards, label="final_reward")
+        plt.plot(episodes_axis, avg_rewards, label="avg_step_reward")
         plt.xlabel("episode")
-        plt.ylabel("final_reward")
+        plt.ylabel("reward")
         plt.legend()
         plt.tight_layout()
         metrics_png.parent.mkdir(parents=True, exist_ok=True)

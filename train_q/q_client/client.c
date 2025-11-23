@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -25,6 +25,18 @@ struct move_list
 
 static int g_step_in_episode = 0;
 static int g_episode_id = 0;
+static int g_last_player_rank[5] = {0};
+static int g_last_seat[5] = {0};
+
+static void update_last_standing(void)
+{
+  for (int i = 0; i < 5; i++)
+  {
+    if (state.player_rank[i] > 0)
+      g_last_player_rank[i] = state.player_rank[i];
+    g_last_seat[i] = state.seat[i];
+  }
+}
 
 struct action_value
 {
@@ -82,7 +94,7 @@ static void log_moves(const struct move_list *list)
 static const char *get_log_path(void)
 {
   const char *p = getenv("Q_LOG_PATH");
-  return (p && strlen(p) > 0) ? p : "logs/experience.jsonl";
+  return (p && strlen(p) > 0) ? p : "../logs/experience.jsonl";
 }
 
 static FILE *open_log_file(void)
@@ -92,7 +104,7 @@ static FILE *open_log_file(void)
   {
     return fp;
   }
-  fp = fopen(get_log_path(), "a");
+  fp = fopen(get_log_path(), "w");
   if (fp == NULL && g_logging == 1)
   {
     printf("failed to open log file %s: %s\n", get_log_path(), strerror(errno));
@@ -145,23 +157,37 @@ static int build_state_vector(int out[STATE_VEC_LEN], int hand[8][15])
   return idx;
 }
 
-static int estimate_final_reward(int my_playernum)
+static int g_player_finish_rank[5] = {0};
+static int g_finish_count = 0;
+
+static void check_player_finish(int table[8][15])
 {
-  int my_rank = 0;
   for (int i = 0; i < 5; i++)
   {
-    if (state.seat[i] == my_playernum)
+    if (g_player_finish_rank[i] == 0)
     {
-      my_rank = state.player_rank[i];
-      break;
+      // table[6][i] is the number of cards for player i
+      if (table[6][i] == 0)
+      {
+        g_finish_count++;
+        g_player_finish_rank[i] = g_finish_count;
+      }
     }
   }
-  if (my_rank <= 0)
-    return 0;
-  return 6 - my_rank; // 1位:5, 5位:1 の簡易報酬
 }
 
-static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int selected_action[ACTION_VEC_LEN], int actions_count, int actions_flat[][ACTION_VEC_LEN], float reward, int done)
+static int estimate_final_reward(int my_playernum)
+{
+  int rank = g_player_finish_rank[my_playernum];
+  if (rank >= 1 && rank <= 5)
+  {
+    return 6 - rank; // 1st: 5 points, ..., 5th: 1 point
+  }
+  // If rank is not determined (e.g. game ended prematurely), return minimum points or 0
+  return 1;
+}
+
+static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int selected_action[ACTION_VEC_LEN], int actions_count, int actions_flat[][ACTION_VEC_LEN], double reward, int accept_flag, int cards_played, int done)
 {
   FILE *fp = open_log_file();
   if (fp == NULL)
@@ -186,7 +212,7 @@ static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], 
     }
     fprintf(fp, "]%s", (a + 1 == actions_count) ? "" : ",");
   }
-  fprintf(fp, "],\"reward\":%.4f,\"done\":%d}\n", reward, done);
+  fprintf(fp, "],\"reward\":%.4f,\"accept\":%d,\"cards_played\":%d,\"done\":%d}\n", reward, accept_flag, cards_played, done);
   fflush(fp);
 }
 
@@ -674,7 +700,7 @@ static void collect_sequence_with_joker(struct move_list *list, int hand[8][15],
 
 static void collect_playable_moves(struct move_list *list, int hand[8][15])
 {
-  // 場に何も無いときは全ての手を候補にする
+  // 蝣ｴ縺ｫ菴輔ｂ辟｡縺・→縺阪・蜈ｨ縺ｦ縺ｮ謇九ｒ蛟呵｣懊↓縺吶ｋ
   if (state.onset == 1)
   {
     collect_single_moves(list, hand);
@@ -684,7 +710,7 @@ static void collect_playable_moves(struct move_list *list, int hand[8][15])
     return;
   }
 
-  // 以降は場の状態に合わせて候補種別を絞る
+  // 莉･髯阪・蝣ｴ縺ｮ迥ｶ諷九↓蜷医ｏ縺帙※蛟呵｣懃ｨｮ蛻･繧堤ｵ槭ｋ
   if (state.qty == 1)
   {
     collect_single_moves(list, hand);
@@ -704,7 +730,7 @@ static void collect_playable_moves(struct move_list *list, int hand[8][15])
 
 static int choose_random_move(struct move_list *list, int out_cards[8][15])
 {
-  if (list->count == 0)
+  if (list->count == 1)
   {
     clearTable(out_cards); // pass
     return -1;
@@ -723,7 +749,7 @@ static int choose_random_move(struct move_list *list, int out_cards[8][15])
 
 static int choose_model_move(struct q_model *model, const char *state_key, struct move_list *list, int out_cards[8][15], int actions_flat[][ACTION_VEC_LEN])
 {
-  if (!model || model->count == 0)
+  if (!model || model->count == 1)
     return -1;
   int st_idx = find_state(model, state_key);
   if (st_idx < 0)
@@ -777,7 +803,7 @@ int main(int argc, char *argv[])
 
   const char *model_path = getenv("Q_MODEL_PATH");
   if (model_path == NULL || strlen(model_path) == 0)
-    model_path = "models/q_table.json";
+    model_path = "../models/q_table.json";
   if (load_q_model(model_path, &g_model) == 0 && g_logging == 1)
   {
     printf("loaded q model: %s (states=%d)\n", model_path, g_model.count);
@@ -794,6 +820,10 @@ int main(int argc, char *argv[])
 
     game_count = startGame(own_cards_buf);
     copyTable(own_cards, own_cards_buf);
+
+    for (int i = 0; i < 5; i++)
+      g_player_finish_rank[i] = 0;
+    g_finish_count = 0;
 
     if (own_cards[5][0] == 0)
     {
@@ -825,22 +855,23 @@ int main(int argc, char *argv[])
       {
         clearCards(select_cards);
         copyTable(own_cards, own_cards_buf);
+        update_last_standing();
 
         int state_vec[STATE_VEC_LEN];
         int action_vec[ACTION_VEC_LEN] = {0};
         int actions_flat[MAX_MOVES][ACTION_VEC_LEN];
         struct move_list candidate_list;
         init_move_list(&candidate_list);
+        // 繝代せ・井ｽ輔ｂ蜃ｺ縺輔↑縺・ｼ峨ｒ蛟呵｣懊↓霑ｽ蜉
+        clearTable(candidate_list.moves[candidate_list.count]);
+        to_rank_counts(actions_flat[candidate_list.count], candidate_list.moves[candidate_list.count]);
+        candidate_list.count++;
         collect_playable_moves(&candidate_list, own_cards);
         int real_candidates = candidate_list.count;
         for (int i = 0; i < candidate_list.count; i++)
         {
-          flatten_cards(actions_flat[i], candidate_list.moves[i]);
+          to_rank_counts(actions_flat[i], candidate_list.moves[i]);
         }
-        // パス（何も出さない）を候補に追加
-        clearTable(candidate_list.moves[candidate_list.count]);
-        flatten_cards(actions_flat[candidate_list.count], candidate_list.moves[candidate_list.count]);
-        candidate_list.count++;
 
         build_state_vector(state_vec, own_cards);
         char state_key[256];
@@ -857,26 +888,30 @@ int main(int argc, char *argv[])
         }
 
         accept_flag = sendCards(select_cards);
-        (void)accept_flag;
 
-        // 報酬計算（環境の受付確認後）
+
+        // 蝣ｱ驟ｬ險育ｮ暦ｼ育腸蠅・・蜿嶺ｻ倡｢ｺ隱榊ｾ鯉ｼ・
         int cards_played = qtyOfCards(select_cards);
-        float reward = 0.0f;
-        if (accept_flag == 1)
+        double reward = 0.0;
+        if (accept_flag > 0)
         {
           if (cards_played > 0)
             reward += 0.1f;
           else if (real_candidates > 0)
-            reward -= 0.05f; // 自発的なパスのみペナルティ
+            reward -= 0.05f; // 閾ｪ逋ｺ逧・↑繝代せ縺ｮ縺ｿ繝壹リ繝ｫ繝・ぅ
 
           reward += 0.05f * cards_played;
           struct state_type move_state;
           analyzeMoveState(select_cards, &move_state);
           if (move_state.rev != state.rev)
-            reward += 0.2f; // 革命が起きた
+            reward += 0.2f; // 髱ｩ蜻ｽ縺瑚ｵｷ縺阪◆
+        }
+        else
+        {
+          reward -= 0.3f; // 謠仙・縺梧拠蜷ｦ縺輔ｌ縺溷ｴ蜷医・螟ｧ縺阪↑繝壹リ繝ｫ繝・ぅ
         }
 
-        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, action_vec, candidate_list.count, actions_flat, reward, 0);
+        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, action_vec, candidate_list.count, actions_flat, reward, accept_flag, cards_played, 0);
         g_step_in_episode++;
       }
       else
@@ -886,6 +921,7 @@ int main(int argc, char *argv[])
 
       lookField(ba_cards_buf);
       copyTable(ba_cards, ba_cards_buf);
+      check_player_finish(ba_cards);
 
       switch (beGameEnd())
       {
@@ -925,4 +961,6 @@ int main(int argc, char *argv[])
   }
   exit(0);
 }
+
+
 

@@ -12,3 +12,7 @@ stamp-h1
 Thumbs.db
 .DS_Store
 ._*
+train_q/runs/*
+train_q/logs/*
+train_q/models/*
+*.dat
