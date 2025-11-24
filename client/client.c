@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
         // 自分のターンであればこのブロックが実行される。
         clearCards(select_cards);            // 選んだカードのクリア
         copyTable(own_cards, own_cards_buf); // カードテーブルをコピー
-        showState(&state);                       // 状態を表示
         /////////////////////////////////////////////////////////////
         // アルゴリズムここから
         // どのカードを出すかはここにかく
