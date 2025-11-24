@@ -6,7 +6,7 @@ Offline Q-table trainer.
 出力:  Q テーブル (models/q_table.json) と学習メトリクス (runs/train_metrics.csv / .png)
 
 各行は以下のいずれか:
-- 行動行: {"ep":int,"t":int,"state":[...17...],"action_idx":int,"action_flat":[...120...],"reward":int,"done":0}
+- 行動行: {"ep":int,"t":int,"state":[...17...],"action_idx":int,"action_flat":[[...17...],...],"reward":int,"done":0}
 - 終端行: {"ep":int,"t":int,"final_reward":int,"done":1}
 """
 
@@ -86,14 +86,28 @@ def train(
                     final_reward = float(s["final_reward"])
                     break
 
-            actions = [s for s in steps if "action_idx" in s]
-            total_step_reward = sum(float(s.get("reward", 0.0)) for s in actions)
+            actions_with_vec = []
+            for s in steps:
+                if "action_idx" not in s:
+                    continue
+                idx = int(s.get("action_idx", 0))
+                if idx < 0:
+                    continue
+                action_vec = None
+                actions_list = s.get("actions")
+                if isinstance(actions_list, list) and 0 <= idx < len(actions_list):
+                    action_vec = actions_list[idx]
+                if action_vec is None:
+                    continue
+                actions_with_vec.append((s, action_vec))
+
+            total_step_reward = sum(float(s.get("reward", 0.0)) for s, _ in actions_with_vec)
             returns = final_reward
-            for s in reversed(actions):
+            for s, action_vec in reversed(actions_with_vec):
                 reward = float(s.get("reward", 0.0))
                 returns = reward + gamma * returns
                 skey = state_key(s["state"])
-                akey = action_key(s["action_flat"])
+                akey = action_key(action_vec)
                 q_entry = q_table.setdefault(skey, {})
                 cnt_entry = counts.setdefault(skey, {})
                 c = cnt_entry.get(akey, 0)
@@ -108,11 +122,10 @@ def train(
                 metric_rows.append(
                     {
                         "episode": ep_id,
-                        "steps": len(actions),
+                        "steps": len(actions_with_vec),
                         "final_reward": final_reward,
                         "return": returns,
                         "total_step_reward": total_step_reward,
-                        "avg_step_reward": (total_step_reward / len(actions)) if actions else 0.0,
                     }
                 )
 
@@ -138,7 +151,6 @@ def train(
                 "final_reward",
                 "return",
                 "total_step_reward",
-                "avg_step_reward",
             ],
         )
         writer.writeheader()
@@ -149,10 +161,10 @@ def train(
 
         episodes_axis = [row["episode"] for row in metric_rows]
         final_rewards = [row["final_reward"] for row in metric_rows]
-        avg_rewards = [row.get("avg_step_reward", 0.0) for row in metric_rows]
+        total_step_rewards = [row["total_step_reward"] for row in metric_rows]
         plt.figure(figsize=(8, 4))
         plt.plot(episodes_axis, final_rewards, label="final_reward")
-        plt.plot(episodes_axis, avg_rewards, label="avg_step_reward")
+        plt.plot(episodes_axis, total_step_rewards, label="total_step_rewards")
         plt.xlabel("episode")
         plt.ylabel("reward")
         plt.legend()

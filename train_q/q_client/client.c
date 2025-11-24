@@ -187,7 +187,7 @@ static int estimate_final_reward(int my_playernum)
   return 1;
 }
 
-static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int selected_action[ACTION_VEC_LEN], int actions_count, int actions_flat[][ACTION_VEC_LEN], double reward, int accept_flag, int cards_played, int done)
+static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], int action_idx, int actions_count, int actions_flat[][ACTION_VEC_LEN], double reward, int done)
 {
   FILE *fp = open_log_file();
   if (fp == NULL)
@@ -197,12 +197,7 @@ static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], 
   {
     fprintf(fp, "%d%s", state_vec[i], (i + 1 == STATE_VEC_LEN) ? "" : ",");
   }
-  fprintf(fp, "],\"action_idx\":%d,\"action_flat\":[", action_idx);
-  for (int i = 0; i < ACTION_VEC_LEN; i++)
-  {
-    fprintf(fp, "%d%s", selected_action[i], (i + 1 == ACTION_VEC_LEN) ? "" : ",");
-  }
-  fprintf(fp, "],\"actions\":[");
+  fprintf(fp, "],\"action_idx\":%d,\"actions\":[", action_idx);
   for (int a = 0; a < actions_count; a++)
   {
     fprintf(fp, "[");
@@ -212,7 +207,7 @@ static void log_transition(int episode, int step, int state_vec[STATE_VEC_LEN], 
     }
     fprintf(fp, "]%s", (a + 1 == actions_count) ? "" : ",");
   }
-  fprintf(fp, "],\"reward\":%.4f,\"accept\":%d,\"cards_played\":%d,\"done\":%d}\n", reward, accept_flag, cards_played, done);
+  fprintf(fp, "],\"reward\":%.4f,\"done\":%d}\n", reward, done);
   fflush(fp);
 }
 
@@ -858,7 +853,6 @@ int main(int argc, char *argv[])
         update_last_standing();
 
         int state_vec[STATE_VEC_LEN];
-        int action_vec[ACTION_VEC_LEN] = {0};
         int actions_flat[MAX_MOVES][ACTION_VEC_LEN];
         struct move_list candidate_list;
         init_move_list(&candidate_list);
@@ -882,11 +876,6 @@ int main(int argc, char *argv[])
         {
           choice_idx = choose_random_move(&candidate_list, select_cards);
         }
-        if (choice_idx >= 0 && choice_idx < candidate_list.count)
-        {
-          memcpy(action_vec, actions_flat[choice_idx], sizeof(action_vec));
-        }
-
         accept_flag = sendCards(select_cards);
 
 
@@ -911,7 +900,7 @@ int main(int argc, char *argv[])
           reward -= 0.3f; // 謠仙・縺梧拠蜷ｦ縺輔ｌ縺溷ｴ蜷医・螟ｧ縺阪↑繝壹リ繝ｫ繝・ぅ
         }
 
-        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, action_vec, candidate_list.count, actions_flat, reward, accept_flag, cards_played, 0);
+        log_transition(g_episode_id, g_step_in_episode, state_vec, choice_idx, candidate_list.count, actions_flat, reward, 0);
         g_step_in_episode++;
       }
       else

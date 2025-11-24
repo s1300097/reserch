@@ -327,7 +327,9 @@ static void collect_sequence_with_joker(struct move_list *list, int hand[8][15],
 
 static void collect_playable_moves(struct move_list *list, int hand[8][15])
 {
-  add_move(list, hand);
+  int move[8][15];
+  clearTable(move);
+  add_move(list, move);
   // 場に何も無いときは全ての手を候補にする
   if (state.onset == 1)
   {
